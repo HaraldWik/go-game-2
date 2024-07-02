@@ -1,5 +1,3 @@
-github.com/HaraldWik/debug v0.0.0-20240629010405-3ae53ed9df57 h1:MZx4EGEgCBWsEX6Cp2eja8hStf1vJRLOhyDEqx9tidc=
-github.com/HaraldWik/debug v0.0.0-20240629010405-3ae53ed9df57/go.mod h1:2whdao+e27mv1/DwWDM/XTOcMRC1TlVu+taTOTUfnE8=
 github.com/HaraldWik/debug v0.0.0-20240629095750-bc1db20a332f h1:NPxU2QO3hX1td6DPXkAF1jJroll4LuZw0+J0jUuH/Kk=
 github.com/HaraldWik/debug v0.0.0-20240629095750-bc1db20a332f/go.mod h1:2whdao+e27mv1/DwWDM/XTOcMRC1TlVu+taTOTUfnE8=
 github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71 h1:5BVwOaUSBTlVZowGO6VZGw2H/zl9nrd3eCZfYV+NfQA=

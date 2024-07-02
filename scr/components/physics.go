@@ -1,4 +1,4 @@
-package commponent
+package component
 
 import (
 	"fmt"
@@ -11,13 +11,4 @@ type Physics struct {
 func (p *Physics) Update() {
 	// Logic to update physics component
 	fmt.Println("Updating physics component")
-}
-
-type Render struct {
-	// Fields specific to render component
-}
-
-func (r *Render) Update() {
-	// Logic to update render component
-	fmt.Println("Updating render component")
 }

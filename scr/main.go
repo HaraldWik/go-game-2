@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/HaraldWik/go-game-2/scr/app"
-	commponent "github.com/HaraldWik/go-game-2/scr/commponents"
+	component "github.com/HaraldWik/go-game-2/scr/components"
+
 	"github.com/HaraldWik/go-game-2/scr/ecs"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
+	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 )
 
 func main() {
@@ -16,14 +18,20 @@ func main() {
 	win.Open()
 
 	scene := ecs.NewScene()
-	o := scene.Create(&commponent.Transform2D{})
-	defer fmt.Println(o.Components)
+
+	cam := scene.Create(&component.Camera2D{Window: win, Transform: component.Transform2D{Pos: vec2.Zero(), Size: vec2.All(1.0), Rot: 0.0}, Zoom: 5.0})
+	fmt.Println(cam)
+
+	scene.Create(&component.RenderRect{component.Transform2D{Pos: vec2.Zero(), Size: vec2.All(1.0), Rot: 90.0}, vec3.New(1.0, 1.0, 0.0)})
+	scene.Create(&component.RenderRect{component.Transform2D{Pos: vec2.New(1.0, -1.5), Size: vec2.All(1.0), Rot: -90.0}, vec3.New(1.0, 0.0, 0.0)})
+	scene.Create(&component.RenderRect{component.Transform2D{Pos: vec2.New(-1.4, 0.34), Size: vec2.All(1.0), Rot: -90.0}, vec3.New(0.0, 1.0, 0.0)})
 
 	for !win.CloseEvent() {
-		win.BeginDraw(0.3, 0.2, 0.5)
+		win.Update()
+		win.BeginDraw(0.1, 0.2, 0.7)
 
 		scene.Update()
 
-		win.EndDrawOpenGL(60)
+		win.EndDraw(60)
 	}
 }

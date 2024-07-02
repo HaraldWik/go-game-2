@@ -1,4 +1,4 @@
-package commponent
+package component
 
 import (
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"

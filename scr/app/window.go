@@ -19,7 +19,7 @@ type Win struct {
 
 	Flags uint32
 
-	sdl *sdl.Window
+	SDL *sdl.Window
 
 	FLAG_RESIZABLE     uint32 // Allowes window to be resized
 	FLAG_FULLSCREEN    uint32 // Makes window fullscreen
@@ -59,23 +59,25 @@ func (app *App) NewWindow(name string, size vec2.Type) Win {
 }
 
 func (win *Win) Open() {
-	// Window creation
+	// Lock the main thread for SDL2 and OpenGL
 	runtime.LockOSThread()
-	debug.Error(sdl.Init(sdl.INIT_EVERYTHING))
-	defer runtime.UnlockOSThread()
 
+	// Initialize SDL
+
+	debug.Error(sdl.Init(sdl.INIT_VIDEO))
+
+	// Create an SDL window
 	var err error
-	win.sdl, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.Size.X), int32(win.Size.Y), win.Flags|0x00000002)
+	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.Size.X), int32(win.Size.Y), win.Flags|sdl.WINDOW_OPENGL)
 	debug.Error(err)
 
-	// OpenGL creation
-	debug.Error(sdl.Init(uint32(sdl.INIT_VIDEO)))
-
-	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
-	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 3)
+	// Set OpenGL attributes for version 2.1
+	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
+	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 
-	_, err = win.sdl.GLCreateContext()
+	// Create an OpenGL context
+	_, err = win.SDL.GLCreateContext()
 	debug.Error(err)
 
 	// Initialize OpenGL
@@ -86,21 +88,21 @@ func (win *Win) Open() {
 	gl.DepthFunc(gl.LEQUAL)
 }
 
-func (win Win) BeginDraw(r, g, b float32) {
+func (win *Win) BeginDraw(r, g, b float32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.ClearColor(r, g, b, 1.0)
 }
 
-func (win Win) EndDrawOpenGL(maxFps int32) {
-	win.sdl.GLSwap()
+func (win *Win) EndDraw(maxFps int32) {
+	win.SDL.GLSwap()
 	sdl.Delay(uint32(1000 / maxFps))
 }
 
-func (win Win) Close() {
-	win.sdl.Destroy()
+func (win *Win) Close() {
+	win.SDL.Destroy()
 }
 
-func (win Win) CloseEvent() bool {
+func (win *Win) CloseEvent() bool {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
@@ -110,44 +112,16 @@ func (win Win) CloseEvent() bool {
 	return false
 }
 
-func (window Win) IsActive() bool {
-	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch event.(type) {
-		case *sdl.QuitEvent:
-			return true
-		case *sdl.WindowEvent:
-			return true
-		case *sdl.KeyboardEvent:
-			return true
-		case *sdl.MouseButtonEvent:
-			return true
-		case *sdl.MouseMotionEvent:
-			return true
-		case *sdl.MouseWheelEvent:
-			return true
-		case *sdl.JoyButtonEvent:
-			return true
-		case *sdl.JoyAxisEvent:
-			return true
-		case *sdl.ControllerButtonEvent:
-			return true
-		case *sdl.ControllerAxisEvent:
-			return true
-		case *sdl.ControllerDeviceEvent:
-			return true
-		case *sdl.TouchFingerEvent:
-			return true
-		case *sdl.MultiGestureEvent:
-			return true
-		case *sdl.DollarGestureEvent:
-			return true
-		case *sdl.DropEvent:
-			return true
-		case *sdl.ClipboardEvent:
-			return true
-		default:
-			return false
-		}
-	}
-	return false
+func (win *Win) Update() {
+	x, y := win.SDL.GetSize()
+	win.SDL.SetSize(x, y)
+}
+
+func (win *Win) GetSize() vec2.Type {
+	x, y := win.SDL.GetSize()
+	return vec2.New(float32(x), float32(y))
+}
+
+func (win *Win) SetSize(size vec2.Type) {
+	win.SDL.SetSize(int32(size.X), int32(size.Y))
 }

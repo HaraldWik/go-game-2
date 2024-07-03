@@ -1,34 +1,38 @@
 package component
 
 import (
+	"github.com/HaraldWik/go-game-2/scr/abus"
 	"github.com/HaraldWik/go-game-2/scr/app"
 	"github.com/go-gl/gl/v2.1/gl"
 )
 
-type Camera2D struct {
-	Window    app.Win
+type Cam2D struct {
+	Win       app.Win
 	Transform Transform2D
 	Zoom      float32
 }
 
-func (camera *Camera2D) Update() {
-	gl.Viewport(0, 0, int32(camera.Window.Size.X), int32(camera.Window.Size.Y))
+func (Cam2D) New(win app.Win, transform Transform2D, zoom float32) abus.Comp {
+	return &Cam2D{Win: win, Transform: transform, Zoom: zoom}
+}
+
+func (cam *Cam2D) Update() {
+	gl.Viewport(0, 0, int32(cam.Win.GetSize().X), int32(cam.Win.GetSize().Y))
 	gl.MatrixMode(gl.PROJECTION)
 	gl.LoadIdentity()
 
-	x, y := camera.Window.SDL.GetSize()
 	// Calculate aspect ratio
-	aspect := float32(x) / float32(y)
-	left := -1*camera.Zoom*aspect + camera.Transform.Pos.X
-	right := 1*camera.Zoom*aspect + camera.Transform.Pos.X
-	top := 1*camera.Zoom + camera.Transform.Pos.Y
-	bottom := -1*camera.Zoom + camera.Transform.Pos.Y
+	aspect := cam.Win.GetSize().X / cam.Win.GetSize().Y
+	left := -1*cam.Zoom*aspect + cam.Transform.Pos.X
+	right := 1*cam.Zoom*aspect + cam.Transform.Pos.X
+	top := 1*cam.Zoom + cam.Transform.Pos.Y
+	bottom := -1*cam.Zoom + cam.Transform.Pos.Y
 	gl.Ortho(float64(left), float64(right), float64(bottom), float64(top), -3, 3)
 
 	// Rotation & position
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
-	gl.Translatef(float32(camera.Transform.Pos.X), float32(camera.Transform.Pos.Y), 0)
-	gl.Rotatef(float32(camera.Transform.Rot), 0, 0, 1)
-	gl.Translatef(-float32(camera.Transform.Pos.X), -float32(camera.Transform.Pos.Y), 0)
+	gl.Translatef(float32(cam.Transform.Pos.X), float32(cam.Transform.Pos.Y), 0)
+	gl.Rotatef(float32(cam.Transform.Rot), 0, 0, 1)
+	gl.Translatef(-float32(cam.Transform.Pos.X), -float32(cam.Transform.Pos.Y), 0)
 }

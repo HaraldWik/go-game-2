@@ -25,7 +25,8 @@ go get github.com/veandco/go-sdl2 v0.4.40
 ---
 ***Latest Release***
 ---
-Added new components, updated window code and added OpenGL rendering!
+Added new components & updated update system!
 
-![image](https://github.com/HaraldWik/go-game-2/assets/167028112/ad975d3c-7095-4037-8bee-2dc12c4e96e4)
+![image](https://github.com/HaraldWik/go-game-2/assets/167028112/a6597193-ea5a-436b-929d-5396744158b9)
+
 ---

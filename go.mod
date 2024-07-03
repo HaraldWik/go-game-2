@@ -7,4 +7,4 @@ require (
 	github.com/veandco/go-sdl2 v0.4.40 // direct
 )
 
-require github.com/HaraldWik/debug v0.0.0-20240629095750-bc1db20a332f // direct
+require github.com/HaraldWik/debug v0.0.0-20240703153311-a70831420109 // direct

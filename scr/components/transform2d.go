@@ -9,6 +9,8 @@ type Transform2D struct {
 	Rot       float32
 }
 
-func (t *Transform2D) Update() {
+func (transform *Transform2D) Update() {}
 
+func (transform *Transform2D) Set() int {
+	return 0
 }

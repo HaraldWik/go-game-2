@@ -70,6 +70,12 @@ func (win *Win) Open() {
 	var err error
 	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.Size.X), int32(win.Size.Y), win.Flags|sdl.WINDOW_OPENGL)
 	debug.Error(err)
+	if win.MinSize != vec2.Zero() {
+		win.SDL.SetMinimumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
+	}
+	if win.MaxSize != vec2.Zero() {
+		win.SDL.SetMaximumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
+	}
 
 	// Set OpenGL attributes for version 2.1
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)

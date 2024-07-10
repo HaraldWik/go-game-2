@@ -1,60 +1,65 @@
-package component
+package mod
 
 import (
+	"github.com/HaraldWik/go-game-2/scr/abus"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 	"github.com/go-gl/gl/v2.1/gl"
 )
 
 type RenderCube3D struct {
-	Transform Transform3D
-	Color     vec3.Type
+	transform  Transform3D
+	Color      vec3.Type
+	Angle      float32
+	hasStarted bool
 }
 
-func (cube *RenderCube3D) Update(angle float32) {
+func (obj *RenderCube3D) Update() {
+	if !obj.hasStarted {
+		curObj := abus.SceneManager.GetCurrentScene().CurObj
+		curObj.AddProperty(obj)
+		obj.hasStarted = true
+	}
+
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
-	gl.Translatef(0, 0, -10) // Move the cube further back
-	gl.Rotatef(angle, cube.Transform.Rot.X/360, cube.Transform.Rot.Y/360, cube.Transform.Rot.Z/360)
+	gl.Translatef(obj.transform.Pos.X, obj.transform.Pos.Y, obj.transform.Pos.Z)
+	gl.Rotatef(obj.Angle, obj.transform.Rot.X/360, obj.transform.Rot.Y/360, obj.transform.Rot.Z/360)
 
 	gl.Begin(gl.QUADS)
 
+	gl.Color3f(obj.Color.X, obj.Color.Y, obj.Color.Z)
+
 	// Front face
-	gl.Color3f(1.0, 0.0, 0.0)
 	gl.Vertex3f(-1.0, -1.0, 1.0)
 	gl.Vertex3f(1.0, -1.0, 1.0)
 	gl.Vertex3f(1.0, 1.0, 1.0)
 	gl.Vertex3f(-1.0, 1.0, 1.0)
 
 	// Back face
-	gl.Color3f(0.0, 1.0, 0.0)
 	gl.Vertex3f(-1.0, -1.0, -1.0)
 	gl.Vertex3f(-1.0, 1.0, -1.0)
 	gl.Vertex3f(1.0, 1.0, -1.0)
 	gl.Vertex3f(1.0, -1.0, -1.0)
 
 	// Top face
-	gl.Color3f(0.0, 0.0, 1.0)
 	gl.Vertex3f(-1.0, 1.0, -1.0)
 	gl.Vertex3f(-1.0, 1.0, 1.0)
 	gl.Vertex3f(1.0, 1.0, 1.0)
 	gl.Vertex3f(1.0, 1.0, -1.0)
 
 	// Bottom face
-	gl.Color3f(1.0, 1.0, 0.0)
 	gl.Vertex3f(-1.0, -1.0, -1.0)
 	gl.Vertex3f(1.0, -1.0, -1.0)
 	gl.Vertex3f(1.0, -1.0, 1.0)
 	gl.Vertex3f(-1.0, -1.0, 1.0)
 
 	// Right face
-	gl.Color3f(1.0, 0.0, 1.0)
 	gl.Vertex3f(1.0, -1.0, -1.0)
 	gl.Vertex3f(1.0, 1.0, -1.0)
 	gl.Vertex3f(1.0, 1.0, 1.0)
 	gl.Vertex3f(1.0, -1.0, 1.0)
 
 	// Left face
-	gl.Color3f(0.0, 1.0, 1.0)
 	gl.Vertex3f(-1.0, -1.0, -1.0)
 	gl.Vertex3f(-1.0, -1.0, 1.0)
 	gl.Vertex3f(-1.0, 1.0, 1.0)

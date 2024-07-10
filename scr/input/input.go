@@ -1,27 +1,55 @@
 package input
 
-import (
-	"github.com/veandco/go-sdl2/sdl"
-)
+import "github.com/veandco/go-sdl2/sdl"
 
-func GetPressedKeys() []sdl.Keycode {
-	keys := make([]sdl.Keycode, 0)
+func GetPressedKeys() []string {
+	// Get the current state of the keyboard
+	keys := sdl.GetKeyboardState()
 
-	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch t := event.(type) {
-		case *sdl.KeyboardEvent:
-			if t.Type == sdl.KEYDOWN {
-				keys = append(keys, t.Keysym.Sym)
-			} else if t.Type == sdl.KEYUP {
-				// Remove key from keys slice if released
-				for i, key := range keys {
-					if key == t.Keysym.Sym {
-						keys = append(keys[:i], keys[i+1:]...)
-						break
-					}
-				}
-			}
+	// Create a slice to hold the names of the pressed keys
+	var pressedKeys []string
+
+	// Iterate through all possible key codes
+	for keyCode := sdl.Scancode(0); keyCode < sdl.NUM_SCANCODES; keyCode++ {
+		if keys[keyCode] != 0 {
+			keyName := sdl.GetKeyName(sdl.GetKeyFromScancode(keyCode))
+			pressedKeys = append(pressedKeys, keyName)
 		}
 	}
-	return nil
+
+	return pressedKeys
+}
+
+func IsPressed(keycode string) bool {
+	keys := GetPressedKeys()
+	for _, key := range keys {
+		if key == keycode {
+			return true
+		}
+	}
+	return false
+}
+
+func IsReleased(keycode string) bool {
+	return !IsPressed(keycode)
+}
+
+var previousPressed = map[string]bool{}
+
+func IsJustPressed(keycode string) bool {
+	current := IsPressed(keycode)
+	pressed := current && !previousPressed[keycode]
+	previousPressed[keycode] = current
+
+	return pressed
+}
+
+var previousReleased = map[string]bool{}
+
+func IsJustReleased(keycode string) bool {
+	current := IsPressed(keycode) && !IsJustPressed(keycode)
+	released := !current && previousReleased[keycode]
+	previousReleased[keycode] = current
+
+	return released
 }

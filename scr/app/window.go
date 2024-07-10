@@ -3,8 +3,9 @@ package app
 import (
 	"runtime"
 
-	debug "github.com/HaraldWik/debug/scr"
+	"github.com/HaraldWik/go-game-2/scr/debug"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
+	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/veandco/go-sdl2/sdl"
@@ -13,7 +14,7 @@ import (
 type Win struct {
 	Name string
 
-	Size    vec2.Type
+	size    vec2.Type
 	MinSize vec2.Type
 	MaxSize vec2.Type
 
@@ -39,7 +40,7 @@ type Win struct {
 func (app *App) NewWindow(name string, size vec2.Type) Win {
 	win := Win{
 		Name:               name,
-		Size:               size,
+		size:               size,
 		FLAG_RESIZABLE:     0x00000020,
 		FLAG_FULLSCREEN:    0x00000001,
 		FLAG_MINIMIZED:     0x00001000,
@@ -63,13 +64,14 @@ func (win *Win) Open() {
 	runtime.LockOSThread()
 
 	// Initialize SDL
-
-	debug.Error(sdl.Init(sdl.INIT_VIDEO))
+	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
+		debug.HandleError("Failed to init", err)
+	}
 
 	// Create an SDL window
 	var err error
-	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.Size.X), int32(win.Size.Y), win.Flags|sdl.WINDOW_OPENGL)
-	debug.Error(err)
+	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.size.X), int32(win.size.Y), win.Flags|sdl.WINDOW_OPENGL)
+	debug.HandleError("Failed to init", err)
 	if win.MinSize != vec2.Zero() {
 		win.SDL.SetMinimumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
 	}
@@ -83,20 +85,23 @@ func (win *Win) Open() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 
 	// Create an OpenGL context
-	_, err = win.SDL.GLCreateContext()
-	debug.Error(err)
+	if _, err = win.SDL.GLCreateContext(); err != nil {
+		debug.HandleError("Failed to create OpenGL Context", err)
+	}
 
 	// Initialize OpenGL
-	debug.Error(gl.Init())
+	if err := gl.Init(); err != nil {
+		debug.HandleError("Failed to init OpenGL", err)
+	}
 
 	// Enable depth test
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LEQUAL)
 }
 
-func (win *Win) BeginDraw(r, g, b float32) {
+func (win *Win) BeginDraw(color vec3.Type) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.ClearColor(r, g, b, 1.0)
+	gl.ClearColor(color.X, color.Y, color.Z, 1.0)
 }
 
 func (win *Win) EndDraw(maxFps int32) {
@@ -118,11 +123,6 @@ func (win *Win) CloseEvent() bool {
 	return false
 }
 
-func (win *Win) Update() {
-	x, y := win.SDL.GetSize()
-	win.SDL.SetSize(x, y)
-}
-
 func (win *Win) GetSize() vec2.Type {
 	x, y := win.SDL.GetSize()
 	return vec2.New(float32(x), float32(y))
@@ -130,4 +130,24 @@ func (win *Win) GetSize() vec2.Type {
 
 func (win *Win) SetSize(size vec2.Type) {
 	win.SDL.SetSize(int32(size.X), int32(size.Y))
+}
+
+func (win *Win) Minimize() {
+	win.SDL.Minimize()
+}
+
+func (win *Win) Maximize() {
+	win.SDL.Maximize()
+}
+
+func (win *Win) SetAlwaysOnTop(onTop bool) {
+	win.SDL.SetAlwaysOnTop(onTop)
+}
+
+func (win *Win) Hide() {
+	win.SDL.Hide()
+}
+
+func (win *Win) Show() {
+	win.SDL.Show()
 }

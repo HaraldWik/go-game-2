@@ -1,7 +1,6 @@
-package component
+package mod
 
 import (
-	"github.com/HaraldWik/go-game-2/scr/abus"
 	"github.com/HaraldWik/go-game-2/scr/app"
 	"github.com/go-gl/gl/v2.1/gl"
 )
@@ -10,10 +9,6 @@ type Cam2D struct {
 	Win       app.Win
 	Transform Transform2D
 	Zoom      float32
-}
-
-func (Cam2D) New(win app.Win, transform Transform2D, zoom float32) abus.Comp {
-	return &Cam2D{Win: win, Transform: transform, Zoom: zoom}
 }
 
 func (cam *Cam2D) Update() {

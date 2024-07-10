@@ -1,5 +1,5 @@
 package abus //Array based update system ABUS
 
-type Comp interface {
+type Mod interface {
 	Update()
 }

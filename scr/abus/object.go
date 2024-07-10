@@ -3,37 +3,77 @@ package abus //Array based update system ABUS
 import "reflect"
 
 type Obj struct {
-	ID    int32
-	Comps []Comp
+	ID    uint32
+	Mods  []Mod         // Module
+	Props []interface{} // Property
+}
+
+func NewObject(mods ...Mod) Obj {
+	return Obj{Mods: mods}
 }
 
 func (obj *Obj) Update() {
-	for _, comp := range obj.Comps {
-		comp.Update()
+	for _, mod := range obj.Mods {
+		mod.Update()
 	}
 }
 
-func (obj *Obj) AddComponents(comps ...Comp) {
-	obj.Comps = append(obj.Comps, comps...)
+// Module
+func (obj *Obj) AddModules(mods ...Mod) {
+	obj.Mods = append(obj.Mods, mods...)
 }
 
-// RemoveComponents method for Object to remove specified components
-func (obj *Obj) RemoveComponents(comps ...Comp) {
-	for _, compToRemove := range comps {
-		for i, comp := range obj.Comps {
-			if comp == compToRemove {
-				obj.Comps = append(obj.Comps[:i], obj.Comps[i+1:]...)
-				break // Continue removing if there are duplicates of the same component
+func (obj *Obj) RemoveModules(mods ...Mod) {
+	for _, m := range mods {
+		for i, mod := range obj.Mods {
+			if mod == m {
+				obj.Mods = append(obj.Mods[:i], obj.Mods[i+1:]...)
+				break
 			}
 		}
 	}
 }
 
-func (obj *Obj) GetComponentOfType(typ reflect.Type) Comp {
-	for _, comp := range obj.Comps {
-		if reflect.TypeOf(comp) == typ {
-			return comp
+// Property
+func (obj *Obj) AddProperty(props ...interface{}) {
+	obj.Props = append(obj.Props, props...)
+}
+
+func (obj *Obj) RemoveProperty(props ...interface{}) {
+	for _, p := range props {
+		for i, prop := range obj.Mods {
+			if prop == p {
+				obj.Props = append(obj.Props[:i], obj.Props[i+1:]...)
+				break
+			}
+		}
+	}
+}
+
+func (obj *Obj) GetProperty(propType interface{}) interface{} {
+	for _, p := range obj.Props {
+		if p == propType {
+			return p
 		}
 	}
 	return nil
+}
+
+func (obj *Obj) ContainsProperty(target interface{}) (interface{}, bool, uint32) {
+	var count uint32
+	var matches []interface{}
+	var hasProp bool
+	targetValue := reflect.TypeOf(target)
+	for _, prop := range obj.Props {
+		if reflect.TypeOf(prop) == targetValue {
+			count++
+			matches = append(matches, prop)
+		}
+	}
+
+	if count > 0 {
+		hasProp = true
+	}
+
+	return matches[0], hasProp, count
 }

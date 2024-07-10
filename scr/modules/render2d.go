@@ -1,4 +1,4 @@
-package component
+package mod
 
 import (
 	"math"
@@ -52,8 +52,8 @@ func (triangle *RenderTriangle2D) Update() {
 	gl.Color3f(triangle.Color.X, triangle.Color.Y, triangle.Color.Z)
 
 	// *Calculate vertices after rotation
-	sinR := float32(math.Sin(float64(triangle.Transform.Rot)))
-	cosR := float32(math.Cos(float64(triangle.Transform.Rot)))
+	sinR := float32(math.Sin(float64(triangle.Transform.Rot / 360)))
+	cosR := float32(math.Cos(float64(triangle.Transform.Rot / 360)))
 
 	x0 := triangle.Transform.Pos.X
 	y0 := triangle.Transform.Pos.Y + triangle.Transform.Size.Y/2

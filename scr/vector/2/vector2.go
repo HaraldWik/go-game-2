@@ -25,95 +25,95 @@ func All(number float32) Type {
 }
 
 // *Addition
-func (original Type) Add(vectors ...Type) Type {
-	for _, vector := range vectors {
-		original.X += vector.X
-		original.Y += vector.Y
+func (org Type) Add(vecs ...Type) Type {
+	for _, vec := range vecs {
+		org.X += vec.X
+		org.Y += vec.Y
 	}
-	return original
+	return org
 }
 
 // *Subtraction
-func (original Type) Sub(vectors ...Type) Type {
-	for _, vector := range vectors {
-		original.X -= vector.X
-		original.Y -= vector.Y
+func (org Type) Sub(vecs ...Type) Type {
+	for _, vec := range vecs {
+		org.X -= vec.X
+		org.Y -= vec.Y
 	}
-	return original
+	return org
 }
 
 // *Multiplication
-func (original Type) Mul(vectors ...Type) Type {
-	for _, vector := range vectors {
-		original.X *= vector.X
-		original.Y *= vector.Y
+func (org Type) Mul(vecs ...Type) Type {
+	for _, vec := range vecs {
+		org.X *= vec.X
+		org.Y *= vec.Y
 	}
-	return original
+	return org
 }
 
 // *Divition
-func (original Type) Div(vectors ...Type) Type {
-	for _, vector := range vectors {
-		original.X *= vector.X
-		original.Y *= vector.Y
+func (org Type) Div(vecs ...Type) Type {
+	for _, vec := range vecs {
+		org.X *= vec.X
+		org.Y *= vec.Y
 	}
-	return original
+	return org
 }
 
 // *Scale
-func (original Type) Scale(scalar float32) Type {
+func (org Type) Scale(scalar float32) Type {
 	return New(
-		original.X*scalar,
-		original.Y*scalar,
+		org.X*scalar,
+		org.Y*scalar,
 	)
 }
 
 // *Dot product
-func (original Type) Dot(other Type) float32 {
+func (org Type) Dot(other Type) float32 {
 	return float32(
-		original.X*other.X +
-			original.Y*other.Y,
+		org.X*other.X +
+			org.Y*other.Y,
 	)
 }
 
 // *Cross product
-func (original Type) Cross(other Type) Type {
+func (org Type) Cross(other Type) Type {
 	return New(
-		original.X*other.Y-original.Y*other.X,
-		original.X*other.Y-original.Y*other.X,
+		org.X*other.Y-org.Y*other.X,
+		org.X*other.Y-org.Y*other.X,
 	)
 }
 
 // *Absolut
-func (original Type) ABS() Type {
+func (org Type) ABS() Type {
 	return New(
-		float32(math.Abs(float64(original.X))),
-		float32(math.Abs(float64(original.Y))),
+		float32(math.Abs(float64(org.X))),
+		float32(math.Abs(float64(org.Y))),
 	)
 }
 
 // *Negativ
-func (original Type) Neg() Type {
+func (org Type) Neg() Type {
 	return New(
-		-float32(math.Abs(float64(original.X))),
-		-float32(math.Abs(float64(original.Y))),
+		-float32(math.Abs(float64(org.X))),
+		-float32(math.Abs(float64(org.Y))),
 	)
 }
 
 // *Length
-func (original Type) Length() float32 {
+func (org Type) Length() float32 {
 	return float32(math.Sqrt(
-		float64(original.X*original.X) +
-			float64(original.Y*original.Y)),
+		float64(org.X*org.X) +
+			float64(org.Y*org.Y)),
 	)
 }
 
 // *Normalize
-func (original Type) Norm() Type {
-	if original.Length() != 0 {
+func (org Type) Norm() Type {
+	if org.Length() != 0 {
 		return New(
-			original.X/original.Length(),
-			original.Y/original.Length(),
+			org.X/org.Length(),
+			org.Y/org.Length(),
 		)
 	} else {
 		return Zero()

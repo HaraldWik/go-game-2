@@ -10,6 +10,10 @@ type Transform3D struct {
 	hasStarted     bool
 }
 
+func (transform Transform3D) Start() {
+
+}
+
 func (transform *Transform3D) Update() {
 	if !transform.hasStarted {
 		curObj := abus.SceneManager.GetCurrentScene().CurObj

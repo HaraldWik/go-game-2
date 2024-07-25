@@ -6,7 +6,7 @@ type App struct {
 	WindowList []Win
 }
 
-func NewApp() App {
+func New() App {
 	return App{}
 }
 

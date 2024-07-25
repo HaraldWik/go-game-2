@@ -7,8 +7,12 @@ import (
 
 type Cam2D struct {
 	Win       app.Win
-	Transform Transform2D
+	transform Transform2D
 	Zoom      float32
+}
+
+func (cam Cam2D) Start() {
+
 }
 
 func (cam *Cam2D) Update() {
@@ -18,16 +22,16 @@ func (cam *Cam2D) Update() {
 
 	// Calculate aspect ratio
 	aspect := cam.Win.GetSize().X / cam.Win.GetSize().Y
-	left := -1*cam.Zoom*aspect + cam.Transform.Pos.X
-	right := 1*cam.Zoom*aspect + cam.Transform.Pos.X
-	top := 1*cam.Zoom + cam.Transform.Pos.Y
-	bottom := -1*cam.Zoom + cam.Transform.Pos.Y
+	left := -1*cam.Zoom*aspect + cam.transform.Pos.X
+	right := 1*cam.Zoom*aspect + cam.transform.Pos.X
+	top := 1*cam.Zoom + cam.transform.Pos.Y
+	bottom := -1*cam.Zoom + cam.transform.Pos.Y
 	gl.Ortho(float64(left), float64(right), float64(bottom), float64(top), -3, 3)
 
 	// Rotation & position
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
-	gl.Translatef(float32(cam.Transform.Pos.X), float32(cam.Transform.Pos.Y), 0)
-	gl.Rotatef(float32(cam.Transform.Rot), 0, 0, 1)
-	gl.Translatef(-float32(cam.Transform.Pos.X), -float32(cam.Transform.Pos.Y), 0)
+	gl.Translatef(float32(cam.transform.Pos.X), float32(cam.transform.Pos.Y), 0)
+	gl.Rotatef(float32(cam.transform.Rot), 0, 0, 1)
+	gl.Translatef(-float32(cam.transform.Pos.X), -float32(cam.transform.Pos.Y), 0)
 }

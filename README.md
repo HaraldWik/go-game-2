@@ -25,8 +25,8 @@ go get github.com/veandco/go-sdl2 v0.4.40
 ---
 ***Latest Release***
 ---
-Added new components & updated update system!
+Added update system! and ported things to it
 
-![image](https://github.com/HaraldWik/go-game-2/assets/167028112/a6597193-ea5a-436b-929d-5396744158b9)
+![image](https://github.com/user-attachments/assets/a1a6d249-102a-47b5-b343-959d5da799e7)
 
 ---

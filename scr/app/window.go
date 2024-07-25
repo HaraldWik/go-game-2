@@ -1,9 +1,9 @@
 package app
 
 import (
+	"log"
 	"runtime"
 
-	"github.com/HaraldWik/go-game-2/scr/debug"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 
@@ -65,13 +65,16 @@ func (win *Win) Open() {
 
 	// Initialize SDL
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
-		debug.HandleError("Failed to init", err)
+		log.Fatalf("Failed to init window videoe:\n%v\n", err)
 	}
 
 	// Create an SDL window
 	var err error
 	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.size.X), int32(win.size.Y), win.Flags|sdl.WINDOW_OPENGL)
-	debug.HandleError("Failed to init", err)
+	if err != nil {
+		log.Fatalf("Failed to create window %s:\n%v\n", win.Name, err)
+	}
+
 	if win.MinSize != vec2.Zero() {
 		win.SDL.SetMinimumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
 	}
@@ -86,12 +89,12 @@ func (win *Win) Open() {
 
 	// Create an OpenGL context
 	if _, err = win.SDL.GLCreateContext(); err != nil {
-		debug.HandleError("Failed to create OpenGL Context", err)
+		log.Fatalf("Failed to create OpenGL Context on window %s:\n%v\n", win.Name, err)
 	}
 
 	// Initialize OpenGL
 	if err := gl.Init(); err != nil {
-		debug.HandleError("Failed to init OpenGL", err)
+		log.Fatalf("Failed to init OpenGL on window %s:\n%v\n", win.Name, err)
 	}
 
 	// Enable depth test

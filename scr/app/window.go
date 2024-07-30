@@ -11,7 +11,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Win struct {
+type Window struct {
 	Name string
 
 	size    vec2.Type
@@ -37,8 +37,8 @@ type Win struct {
 	FLAG_POPUP_MENU    uint32 // Makes so window is treated as a popup menu
 }
 
-func (app *App) NewWindow(name string, size vec2.Type) Win {
-	win := Win{
+func (app *App) NewWindow(name string, size vec2.Type) Window {
+	window := Window{
 		Name:               name,
 		size:               size,
 		FLAG_RESIZABLE:     0x00000020,
@@ -55,11 +55,11 @@ func (app *App) NewWindow(name string, size vec2.Type) Win {
 		FLAG_TOOLTIP:       0x00040000,
 		FLAG_POPUP_MENU:    0x00080000,
 	}
-	app.WindowList = append(app.WindowList, win)
-	return win
+	app.WindowList = append(app.WindowList, window)
+	return window
 }
 
-func (win *Win) Open() {
+func (w *Window) Open() {
 	// Lock the main thread for SDL2 and OpenGL
 	runtime.LockOSThread()
 
@@ -70,16 +70,16 @@ func (win *Win) Open() {
 
 	// Create an SDL window
 	var err error
-	win.SDL, err = sdl.CreateWindow(win.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(win.size.X), int32(win.size.Y), win.Flags|sdl.WINDOW_OPENGL)
+	w.SDL, err = sdl.CreateWindow(w.Name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, int32(w.size.X), int32(w.size.Y), w.Flags|sdl.WINDOW_OPENGL)
 	if err != nil {
-		log.Fatalf("Failed to create window %s:\n%v\n", win.Name, err)
+		log.Fatalf("Failed to create window %s:\n%v\n", w.Name, err)
 	}
 
-	if win.MinSize != vec2.Zero() {
-		win.SDL.SetMinimumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
+	if w.MinSize != vec2.Zero() {
+		w.SDL.SetMinimumSize(int32(w.MinSize.X), int32(w.MinSize.Y))
 	}
-	if win.MaxSize != vec2.Zero() {
-		win.SDL.SetMaximumSize(int32(win.MinSize.X), int32(win.MinSize.Y))
+	if w.MaxSize != vec2.Zero() {
+		w.SDL.SetMaximumSize(int32(w.MinSize.X), int32(w.MinSize.Y))
 	}
 
 	// Set OpenGL attributes for version 2.1
@@ -88,13 +88,13 @@ func (win *Win) Open() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
 
 	// Create an OpenGL context
-	if _, err = win.SDL.GLCreateContext(); err != nil {
-		log.Fatalf("Failed to create OpenGL Context on window %s:\n%v\n", win.Name, err)
+	if _, err = w.SDL.GLCreateContext(); err != nil {
+		log.Fatalf("Failed to create OpenGL Context on window %s:\n%v\n", w.Name, err)
 	}
 
 	// Initialize OpenGL
 	if err := gl.Init(); err != nil {
-		log.Fatalf("Failed to init OpenGL on window %s:\n%v\n", win.Name, err)
+		log.Fatalf("Failed to init OpenGL on window %s:\n%v\n", w.Name, err)
 	}
 
 	// Enable depth test
@@ -102,21 +102,21 @@ func (win *Win) Open() {
 	gl.DepthFunc(gl.LEQUAL)
 }
 
-func (win *Win) BeginDraw(color vec3.Type) {
+func (w *Window) BeginDraw(color vec3.Type) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.ClearColor(color.X, color.Y, color.Z, 1.0)
 }
 
-func (win *Win) EndDraw(maxFps int32) {
-	win.SDL.GLSwap()
+func (w *Window) EndDraw(maxFps int32) {
+	w.SDL.GLSwap()
 	sdl.Delay(uint32(1000 / maxFps))
 }
 
-func (win *Win) Close() {
-	win.SDL.Destroy()
+func (w *Window) Close() {
+	w.SDL.Destroy()
 }
 
-func (win *Win) CloseEvent() bool {
+func (w *Window) CloseEvent() bool {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch event.(type) {
 		case *sdl.QuitEvent:
@@ -126,31 +126,46 @@ func (win *Win) CloseEvent() bool {
 	return false
 }
 
-func (win *Win) GetSize() vec2.Type {
-	x, y := win.SDL.GetSize()
+func (w *Window) GetSize() vec2.Type {
+	x, y := w.SDL.GetSize()
 	return vec2.New(float32(x), float32(y))
 }
 
-func (win *Win) SetSize(size vec2.Type) {
-	win.SDL.SetSize(int32(size.X), int32(size.Y))
+func (w *Window) SetSize(size vec2.Type) {
+	w.SDL.SetSize(int32(size.X), int32(size.Y))
 }
 
-func (win *Win) Minimize() {
-	win.SDL.Minimize()
+func (w *Window) Minimize() {
+	w.SDL.Minimize()
 }
 
-func (win *Win) Maximize() {
-	win.SDL.Maximize()
+func (w *Window) Maximize() {
+	w.SDL.Maximize()
 }
 
-func (win *Win) SetAlwaysOnTop(onTop bool) {
-	win.SDL.SetAlwaysOnTop(onTop)
+func (w *Window) SetAlwaysOnTop(onTop bool) {
+	w.SDL.SetAlwaysOnTop(onTop)
 }
 
-func (win *Win) Hide() {
-	win.SDL.Hide()
+func (w *Window) Hide() {
+	w.SDL.Hide()
 }
 
-func (win *Win) Show() {
-	win.SDL.Show()
+func (w *Window) Show() {
+	w.SDL.Show()
+}
+
+var lastFrameTime uint32
+
+func (w *Window) GetDeltaTime() float32 {
+	// Initialize timing if it's the first call
+	if lastFrameTime == 0 {
+		lastFrameTime = sdl.GetTicks()
+		return 0.0 // Return 0 for the first frame as there's no previous delta time
+	}
+
+	currentTime := sdl.GetTicks()
+	deltaTime := float32(currentTime-lastFrameTime) / 1000.0
+	lastFrameTime = currentTime
+	return deltaTime
 }

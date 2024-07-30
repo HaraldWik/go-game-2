@@ -3,7 +3,7 @@ package app
 import "syscall"
 
 type App struct {
-	WindowList []Win
+	WindowList []Window
 }
 
 func New() App {

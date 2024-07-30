@@ -8,5 +8,9 @@ type Transform2D struct {
 }
 
 func NewTransform2D(pos, size vec2.Type, rot float32) Transform2D {
-	return Transform2D{Pos: pos, Size: size, Rot: rot}
+	return Transform2D{
+		Pos:  pos,
+		Size: size,
+		Rot:  rot,
+	}
 }

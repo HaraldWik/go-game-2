@@ -1,75 +1,114 @@
 package ups
 
-// MANAGER
+import (
+	"fmt"
+	"log"
+)
 
-var Manager manager = manager{
-	Objs:   make(map[string]*Object),
-	curObj: &Object{}, // Initialize curObj
+// Engine
+var Engine engine = engine{
+	Objects: make(map[string]*Object),
+	curObj:  &Object{},
 }
 
-type manager struct {
-	Objs   map[string]*Object
-	curObj *Object
+type engine struct {
+	Objects map[string]*Object
+	curObj  *Object
 }
 
-func (m *manager) GetParent() Object {
-	return *m.curObj
+func (m *engine) GetParent() *Object {
+	return m.curObj
 }
 
-func (m *manager) Update() {
-	for _, obj := range m.Objs {
+func (m *engine) Update(deltaTime float32) {
+	for _, obj := range m.Objects {
 		*m.curObj = *obj
-		m.curObj.Update()
+		if !obj.hasStarted {
+			obj.start()
+			obj.hasStarted = true
+		}
+		m.curObj.update(deltaTime)
 	}
 }
 
-func (m *manager) AddObject(name string, obj Object) {
-	m.Objs[name] = &obj
+func (m *engine) AddObject(obj *Object) {
+	m.Objects[obj.Name] = obj
 }
 
-func (s *manager) DeleteObject(name string) {
-	delete(s.Objs, name)
+func (m *engine) DeleteObject(name string) {
+	delete(m.Objects, name)
 }
 
-// OBJ
+func (m *engine) SetObject(name string, dt Data, syss []System, tags ...string) {
+	obj := m.Objects[name]
+	obj.Data = dt
+	obj.Systems = syss
+	obj.Tags = tags
+}
 
+func (m *engine) GetObject(name string) *Object {
+	return m.Objects[name]
+}
+
+// Object
 type Object struct {
-	Data *Data
-	Syss []Sys
+	Name       string
+	Data       Data
+	Systems    []System
+	Tags       []string
+	hasStarted bool
 }
 
-func NewObject() Object {
-	dt := make(map[string]interface{})
-	return Object{Data: (*Data)(&dt)}
-}
-
-func (o *Object) Update() {
-	for _, sys := range o.Syss {
-		sys.Update()
+func NewObject(name string, dt Data, syss []System, tags ...string) *Object {
+	obj := &Object{
+		Name:    name,
+		Data:    dt,
+		Systems: syss,
+		Tags:    tags,
 	}
+	Engine.AddObject(obj)
+	return obj
 }
 
-func (o *Object) AddData(key string, value interface{}) {
-	(*o.Data)[key] = value
-}
+func (o *Object) Clone(times uint32, dt ...Data) {
+	o.AddTags(o.Name)
+	for i := 0; i < int(times); i++ {
+		if i > len(dt)-1 {
+			new := make(map[string]interface{})
+			for key, value := range o.Data {
+				new[key] = value
+			}
 
-func (o *Object) DeleteData(key string) {
-	delete(*o.Data, key)
-}
-
-func (o *Object) AddSystems(sys ...Sys) {
-	o.Syss = append(o.Syss, sys...)
-}
-
-func (o *Object) RemoveSystem(sys Sys) {
-	for i, s := range o.Syss {
-		if s == sys {
-			o.Syss = append(o.Syss[:i], o.Syss[i+1:]...)
+			NewObject(
+				o.Name+fmt.Sprintf("-%02d", i+1),
+				new,
+				o.Systems,
+				o.Name,
+			)
+		} else {
+			NewObject(
+				o.Name+fmt.Sprintf("-%02d", i+1),
+				dt[int(i)],
+				o.Systems,
+				o.Name,
+			)
 		}
 	}
 }
 
-// DATA
+func (o *Object) start() {
+	for _, sys := range o.Systems {
+		sys.Start()
+	}
+}
+
+func (o *Object) update(deltaTime float32) {
+	for _, sys := range o.Systems {
+		sys.Update(deltaTime)
+	}
+}
+
+// Data
 
 type Data map[string]interface{}
 
@@ -77,12 +116,75 @@ func (d *Data) Set(tar string, new interface{}) {
 	(*d)[tar] = new
 }
 
-func (d *Data) Get(tar string) interface{} {
-	return (*d)[tar]
+func (d Data) Get(tar string) interface{} {
+	if value, exists := d[tar]; exists {
+		return value
+	} else {
+		log.Fatalf("Failed to get data '%s', please attach the data to the object '%s'\n", tar, Engine.GetParent().Name)
+		return nil
+	}
 }
 
-// SYS
+func (d *Data) Delete(tar string) {
+	d.Set(tar, nil)
+}
 
-type Sys interface {
-	Update()
+// Systems
+func (o *Object) AddSystemss(syss ...System) {
+	o.Systems = append(o.Systems, syss...)
+}
+
+func (o *Object) RemoveSystems(syss ...System) {
+	set := make(map[System]struct{}, len(syss))
+	for _, sys := range syss {
+		set[sys] = struct{}{}
+	}
+
+	var updatedSystems []System
+	for _, s := range o.Systems {
+		if _, exists := set[s]; !exists {
+			updatedSystems = append(updatedSystems, s)
+		}
+	}
+	o.Systems = updatedSystems
+}
+
+type System interface {
+	Start()
+	Update(deltaTime float32)
+}
+
+// Tags
+func (o *Object) AddTags(tags ...string) {
+	o.Tags = append(o.Tags, tags...)
+}
+
+func (o *Object) RemoveTags(tags ...string) {
+	tagMap := make(map[string]struct{}, len(tags))
+	for _, tag := range tags {
+		tagMap[tag] = struct{}{}
+	}
+
+	var updatedTags []string
+	for _, tag := range o.Tags {
+		if _, found := tagMap[tag]; !found {
+			updatedTags = append(updatedTags, tag)
+		}
+	}
+
+	o.Tags = updatedTags
+}
+
+func (m *engine) FindTag(tar string) []*Object {
+	var filteredObjects []*Object
+
+	for _, obj := range m.Objects {
+		for _, tag := range obj.Tags {
+			if tag == tar {
+				filteredObjects = append(filteredObjects, obj)
+			}
+		}
+	}
+
+	return filteredObjects
 }

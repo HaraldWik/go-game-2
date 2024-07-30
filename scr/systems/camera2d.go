@@ -7,12 +7,45 @@ import (
 	"github.com/go-gl/gl/v2.1/gl"
 )
 
-type Camera2D struct{}
+type Camera2D struct{} /*
+# Data:
 
-func (c Camera2D) Update() {
+| ¤ 'Window' <app.Window>
+| ¤ 'Transform' <dt.Transform2D>
+| ¤ 'Zoom' <float32>
+
+# Description:
+
+<Camera2D> is a 2 dimentinal OpenGL camera that supports position, rotation and zoom.
+
+# Exampel:
+
+```
+	ups.NewObjectOptimal(
+		"Camera",
+		ups.Data{
+			"Window":    myWindow,
+			"Transform": dt.NewTransform2D(vec2.Zero(), vec2.All(1.0), 0.0),
+			"Zoom":      float32(10.0),
+		},
+		sys.Camera2D{},
+	)
+```
+
+# Info:
+
+'app', 'dt', 'ups' & 'sys' are packages.
+
+Declaration of the data 'Zoom' is needed with 'float32()' or a variable of type <float32>
+
+*/
+
+func (c Camera2D) Start() {}
+
+func (c Camera2D) Update(deltaTime float32) {
 	var (
-		obj       = ups.Manager.GetParent()
-		window    = obj.Data.Get("Window").(app.Win)
+		obj       = ups.Engine.GetParent()
+		window    = obj.Data.Get("Window").(app.Window)
 		transform = obj.Data.Get("Transform").(dt.Transform2D)
 		zoom      = obj.Data.Get("Zoom").(float32)
 	)

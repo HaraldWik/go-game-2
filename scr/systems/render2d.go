@@ -1,86 +1,238 @@
 package sys
 
 import (
+	"log"
 	"math"
 
 	dt "github.com/HaraldWik/go-game-2/scr/data-types"
 	"github.com/HaraldWik/go-game-2/scr/ups"
+	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 	"github.com/go-gl/gl/v2.1/gl"
 )
 
-type RenderRect2D struct{}
+type RenderMesh2D struct{}
 
-func (r RenderRect2D) Update() {
+func (t RenderMesh2D) Start() {}
+
+func (t RenderMesh2D) Update(deltaTime float32) {
 	var (
-		obj       = ups.Manager.GetParent()
+		obj      = ups.Engine.GetParent()
+		material = obj.Data.Get("Material").(dt.Material)
+		vertices = obj.Data.Get("Vertices").([]vec2.Type)
+	)
+
+	if len(vertices) < 3 {
+		log.Fatalf("RenderMesh2D requires at least 3 vertices")
+	}
+
+	gl.Color3f(material.Alpha.X, material.Alpha.Y, material.Alpha.Z)
+	gl.Enable(gl.TEXTURE_2D)
+	gl.BindTexture(gl.TEXTURE_2D, material.Texture.Image)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	// Calculate the bounding box of the vertices
+	minX, minY := vertices[0].X, vertices[0].Y
+	maxX, maxY := vertices[0].X, vertices[0].Y
+
+	for _, v := range vertices {
+		if v.X < minX {
+			minX = v.X
+		}
+		if v.X > maxX {
+			maxX = v.X
+		}
+		if v.Y < minY {
+			minY = v.Y
+		}
+		if v.Y > maxY {
+			maxY = v.Y
+		}
+	}
+
+	width := maxX - minX
+	height := maxY - minY
+
+	// Render the mesh
+	gl.Begin(gl.TRIANGLE_FAN) // Use TRIANGLE_FAN to handle arbitrary convex polygons
+	for _, vertex := range vertices {
+		// Map texture coordinates based on the bounding box
+		tx := (vertex.X - minX) / width
+		ty := (vertex.Y - minY) / height
+		gl.TexCoord2f(tx, ty)
+		gl.Vertex2f(vertex.X, vertex.Y)
+	}
+	gl.End()
+
+	// Disable texturing and blending after rendering
+	gl.Disable(gl.TEXTURE_2D)
+	gl.Disable(gl.BLEND)
+
+	// Check for OpenGL errors
+	if err := gl.GetError(); err != gl.NO_ERROR {
+		log.Fatalf("OpenGL Error: %v\n", err)
+	}
+}
+
+type RenderTexture2D struct{}
+
+func (t RenderTexture2D) Start() {}
+
+func (t RenderTexture2D) Update(deltaTime float32) {
+	var (
+		obj       = ups.Engine.GetParent()
+		material  = obj.Data.Get("Material").(dt.Material)
+		transform = obj.Data.Get("Transform").(dt.Transform2D)
+	)
+
+	gl.MatrixMode(gl.MODELVIEW)
+	gl.PushMatrix()
+
+	gl.LoadIdentity()
+	gl.Translatef(float32(transform.Pos.X), float32(transform.Pos.Y), 0)
+	gl.Rotatef(float32(-transform.Rot), 0, 0, 1)
+
+	gl.Enable(gl.TEXTURE_2D)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	gl.BindTexture(gl.TEXTURE_2D, material.Texture.Image)
+
+	gl.Color3f(material.Alpha.X, material.Alpha.Y, material.Alpha.Z)
+
+	gl.Begin(gl.QUADS)
+	gl.TexCoord2f(0, 1)
+	gl.Vertex2f(-float32(transform.Size.X)/2, -float32(transform.Size.Y)/2)
+	gl.TexCoord2f(1, 1)
+	gl.Vertex2f(float32(transform.Size.X)/2, -float32(transform.Size.Y)/2)
+	gl.TexCoord2f(1, 0)
+	gl.Vertex2f(float32(transform.Size.X)/2, float32(transform.Size.Y)/2)
+	gl.TexCoord2f(0, 0)
+	gl.Vertex2f(-float32(transform.Size.X)/2, float32(transform.Size.Y)/2)
+	gl.End()
+
+	gl.Disable(gl.TEXTURE_2D)
+	gl.Disable(gl.BLEND)
+
+	gl.PopMatrix()
+
+	if err := gl.GetError(); err != gl.NO_ERROR {
+		log.Fatalf("OpenGL Error: %v\n", err)
+	}
+}
+
+type RenderRectangle2D struct{} /*
+# Data:
+
+| ¤ 'Color' <vec3.Type>
+| ¤ 'Transform' <dt.Transform2D>
+
+# Description:
+
+<RenderRectangle2D> is a 2 dimentinal OpenGL rectangle that supports position, rotation and size.
+
+# Exampel:
+
+```
+	ups.NewObjectOptimal(
+		"Rectangle",
+		ups.Data{
+			"Color":    vec3.New(1.0, 0.0, 0.0),
+			"Transform": dt.NewTransform2D(vec2.Zero(), vec2.All(1.0), 0.0),
+		},
+		sys.RenderRectangle2D{},
+	)
+```
+
+# Info:
+
+'dt', 'ups' & 'sys' are packages.
+*/
+
+func (r RenderRectangle2D) Start() {}
+
+func (r RenderRectangle2D) Update(deltaTime float32) {
+	var (
+		obj       = ups.Engine.GetParent()
 		color     = obj.Data.Get("Color").(vec3.Type)
 		transform = obj.Data.Get("Transform").(dt.Transform2D)
 	)
 
-	gl.Begin(gl.QUADS)
+	gl.MatrixMode(gl.MODELVIEW)
+	gl.PushMatrix()
+
+	gl.LoadIdentity()
+	gl.Translatef(float32(transform.Pos.X), float32(transform.Pos.Y), 0)
+	gl.Rotatef(float32(-transform.Rot), 0, 0, 1)
+
 	gl.Color3f(color.X, color.Y, color.Z)
 
-	// Calculate vertices after rot
-	sinR := float32(math.Sin(float64(transform.Rot / 360)))
-	cosR := float32(math.Cos(float64(transform.Rot / 360)))
-
-	x0 := -0.5*transform.Size.X*cosR - -0.5*transform.Size.Y*sinR + transform.Pos.X
-	y0 := -0.5*transform.Size.X*sinR + -0.5*transform.Size.Y*cosR + transform.Pos.Y
-
-	x1 := 0.5*transform.Size.X*cosR - -0.5*transform.Size.Y*sinR + transform.Pos.X
-	y1 := 0.5*transform.Size.X*sinR + -0.5*transform.Size.Y*cosR + transform.Pos.Y
-
-	x2 := 0.5*transform.Size.X*cosR - 0.5*transform.Size.Y*sinR + transform.Pos.X
-	y2 := 0.5*transform.Size.X*sinR + 0.5*transform.Size.Y*cosR + transform.Pos.Y
-
-	x3 := -0.5*transform.Size.X*cosR - 0.5*transform.Size.Y*sinR + transform.Pos.X
-	y3 := -0.5*transform.Size.X*sinR + 0.5*transform.Size.Y*cosR + transform.Pos.Y
-
-	// Draw vertices
-	gl.Vertex2f(x0, y0) // Bottom-left
-	gl.Vertex2f(x1, y1) // Bottom-right
-	gl.Vertex2f(x2, y2) // Top-right
-	gl.Vertex2f(x3, y3) // Top-left
-
+	gl.Begin(gl.QUADS)
+	gl.Vertex2f(-float32(transform.Size.X)/2, -float32(transform.Size.Y)/2)
+	gl.Vertex2f(float32(transform.Size.X)/2, -float32(transform.Size.Y)/2)
+	gl.Vertex2f(float32(transform.Size.X)/2, float32(transform.Size.Y)/2)
+	gl.Vertex2f(-float32(transform.Size.X)/2, float32(transform.Size.Y)/2)
 	gl.End()
+
+	gl.Disable(gl.TEXTURE_2D)
+
+	gl.PopMatrix()
+
+	if err := gl.GetError(); err != gl.NO_ERROR {
+		log.Fatalf("OpenGL Error: %v\n", err)
+	}
 }
 
-type RenderTriangle2D struct{}
+type RenderTriangle2D struct{} /*
+# Data:
 
-func (t RenderTriangle2D) Update() {
+| ¤ 'Color' <vec3.Type>
+| ¤ 'Transform' <dt.Transform2D>
+
+# Description:
+
+<RenderTriangle2D> is a 2 dimentinal OpenGL triangle that supports position, rotation and size.
+
+# Exampel:
+
+```
+	ups.NewObjectOptimal(
+		"Triangle",
+		ups.Data{
+			"Color":    vec3.New(0.0, 1.0, 0.0),
+			"Transform": dt.NewTransform2D(vec2.Zero(), vec2.All(1.0), 0.0),
+		},
+		sys.RenderTriangle2D{},
+	)
+```
+
+# Info:
+
+'dt', 'ups' & 'sys' are packages.
+*/
+
+func (t RenderTriangle2D) Start() {}
+
+func (t RenderTriangle2D) Update(deltaTime float32) {
 	var (
-		obj       = ups.Manager.GetParent()
+		obj       = ups.Engine.GetParent()
 		color     = obj.Data.Get("Color").(vec3.Type)
 		transform = obj.Data.Get("Transform").(dt.Transform2D)
-		flip      = obj.Data.Get("Flip").(bool)
 	)
 
 	gl.Begin(gl.TRIANGLES)
 	gl.Color3f(color.X, color.Y, color.Z)
-
-	// Calculate vertices after rotation
-	sinR := float32(math.Sin(float64(transform.Rot / 360)))
-	cosR := float32(math.Cos(float64(transform.Rot / 360)))
 
 	x0 := transform.Pos.X
 	y0 := transform.Pos.Y + transform.Size.Y/2
 
 	var x1, y1, x2, y2 float32
 
-	if flip {
-		x1 = transform.Pos.X - transform.Size.X/2*cosR + transform.Size.Y/2*sinR
-		y1 = transform.Pos.Y - transform.Size.X/2*sinR - transform.Size.Y/2*cosR
+	x1 = transform.Pos.X - transform.Size.X/2 + transform.Size.Y/2
+	y1 = transform.Pos.Y - transform.Size.X/2 - transform.Size.Y/2
 
-		x2 = transform.Pos.X + transform.Size.X/2*cosR + transform.Size.Y/2*sinR
-		y2 = transform.Pos.Y + transform.Size.X/2*sinR - transform.Size.Y/2*cosR
-	} else {
-		x1 = transform.Pos.X + transform.Size.X/2*cosR - transform.Size.Y/2*sinR
-		y1 = transform.Pos.Y + transform.Size.X/2*sinR + transform.Size.Y/2*cosR
-
-		x2 = transform.Pos.X - transform.Size.X/2*cosR - transform.Size.Y/2*sinR
-		y2 = transform.Pos.Y - transform.Size.X/2*sinR + transform.Size.Y/2*cosR
-	}
+	x2 = transform.Pos.X + transform.Size.X/2 + transform.Size.Y/2
+	y2 = transform.Pos.Y + transform.Size.X/2 - transform.Size.Y/2
 
 	// Draw vertices
 	gl.Vertex2f(x0, y0) // *Top
@@ -90,11 +242,41 @@ func (t RenderTriangle2D) Update() {
 	gl.End()
 }
 
-type RenderCircle2D struct{}
+type RenderCircle2D struct{} /*
+# Data:
 
-func (c RenderCircle2D) Update() {
+| ¤ 'Color' <vec3.Type>
+| ¤ 'Transform' <dt.Transform2D>
+| ¤ 'Segments' <uint32>
+
+# Description:
+
+<RenderCircle2D> is a 2 dimentinal OpenGL circle that supports position, rotation, size and segments.
+
+# Exampel:
+
+```
+	ups.NewObjectOptimal(
+		"Circle",
+		ups.Data{
+			"Color":    vec3.New(1.0, 0.0, 0.0),
+			"Transform": dt.NewTransform2D(vec2.Zero(), vec2.All(1.0), 0.0),
+			"Segments": uint32(16),
+		},
+		sys.RenderCircle2D{},
+	)
+```
+
+# Info:
+
+'dt', 'ups' & 'sys' are packages.
+*/
+
+func (c RenderCircle2D) Start() {}
+
+func (c RenderCircle2D) Update(deltaTime float32) {
 	var (
-		obj       = ups.Manager.GetParent()
+		obj       = ups.Engine.GetParent()
 		color     = obj.Data.Get("Color").(vec3.Type)
 		transform = obj.Data.Get("Transform").(dt.Transform2D)
 		segments  = obj.Data.Get("Segments").(uint32)
@@ -111,10 +293,8 @@ func (c RenderCircle2D) Update() {
 		y := float32(math.Sin(float64(i)*theta)) * transform.Size.Y / 2.0
 
 		// Apply Pos & rotation
-		cosR := float32(math.Cos(float64(transform.Rot)))
-		sinR := float32(math.Sin(float64(transform.Rot)))
-		rotatedX := x*cosR - y*sinR + transform.Pos.X
-		rotatedY := x*sinR + y*cosR + transform.Pos.Y
+		rotatedX := x - y + transform.Pos.X
+		rotatedY := x + y + transform.Pos.Y
 
 		gl.Vertex2f(rotatedX, rotatedY)
 	}

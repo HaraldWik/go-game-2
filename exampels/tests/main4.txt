@@ -1,0 +1,56 @@
+package main
+
+import (
+	"github.com/HaraldWik/go-game-2/scr/app"
+	dt "github.com/HaraldWik/go-game-2/scr/data-types"
+	sys "github.com/HaraldWik/go-game-2/scr/systems"
+	"github.com/HaraldWik/go-game-2/scr/ups"
+	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
+	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
+)
+
+var (
+	ObsColor = vec3.New(0.0, 0.675, 0.4)
+	ObsList  []*ups.Object
+)
+
+func main() {
+	app := app.New()
+	win := app.NewWindow("Window!!!", vec2.New(1920, 1075))
+	win.Flags = win.FLAG_RESIZABLE
+	win.Open()
+
+	ups.NewObject(
+		"Camera2D",
+		ups.Data{
+			"Window":    win,
+			"Transform": dt.NewTransform2D(vec2.New(0.0, 0.0), vec2.All(1.0), 0.0),
+			"Zoom":      float32(2.5),
+		},
+		[]ups.System{
+			sys.Camera2D{},
+		},
+	)
+
+	texture := dt.LoadTexture("../texture.png")
+
+	ups.NewObject(
+		"Texture",
+		ups.Data{
+			"Color":     vec3.All(1.0),
+			"Texture":   texture,
+			"Transform": dt.NewTransform2D(vec2.Zero(), vec2.Zero(), 0.0),
+		},
+		[]ups.System{
+			sys.RenderTexture2D{},
+		},
+	)
+
+	for !win.CloseEvent() {
+		win.BeginDraw(vec3.New(0.0, 0.144, 0.856))
+
+		ups.Manager.Update(win.GetDeltaTime())
+
+		win.EndDraw(60)
+	}
+}

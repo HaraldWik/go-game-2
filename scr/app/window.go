@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
-	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/veandco/go-sdl2/sdl"
@@ -35,6 +34,8 @@ type Window struct {
 	FLAG_UTILITY       uint32 // Makes so window is treated as a utility
 	FLAG_TOOLTIP       uint32 // Makes so window is treated as a tooltip
 	FLAG_POPUP_MENU    uint32 // Makes so window is treated as a popup menu
+
+	MaxFPS uint32
 }
 
 func (app *App) NewWindow(name string, size vec2.Type) Window {
@@ -86,6 +87,7 @@ func (w *Window) Open() {
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
 	sdl.GLSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
+	sdl.GLSetAttribute(sdl.GL_DOUBLEBUFFER, 1)
 
 	// Create an OpenGL context
 	if _, err = w.SDL.GLCreateContext(); err != nil {
@@ -96,20 +98,17 @@ func (w *Window) Open() {
 	if err := gl.Init(); err != nil {
 		log.Fatalf("Failed to init OpenGL on window %s:\n%v\n", w.Name, err)
 	}
+}
 
-	// Enable depth test
+func (w *Window) BeginDraw() {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LEQUAL)
-}
-
-func (w *Window) BeginDraw(color vec3.Type) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.ClearColor(color.X, color.Y, color.Z, 1.0)
 }
 
-func (w *Window) EndDraw(maxFps int32) {
+func (w *Window) EndDraw() {
 	w.SDL.GLSwap()
-	sdl.Delay(uint32(1000 / maxFps))
+	sdl.Delay(uint32(1000 / w.MaxFPS))
 }
 
 func (w *Window) Close() {

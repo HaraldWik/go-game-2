@@ -13,7 +13,7 @@ type Audio struct {
 	Channel uint32
 }
 
-func AUDIO(path string) *Audio {
+func NewAudio(path string) *Audio {
 	if err := sdl.Init(sdl.INIT_AUDIO); err != nil {
 		log.Fatalf("Failed to init SDL audio: %v", err)
 		sdl.Quit()

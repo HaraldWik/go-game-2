@@ -22,7 +22,7 @@ func EmptyTexture() Texture {
 	}
 }
 
-func PNG(filePath string) Texture {
+func NewTexture(filePath string) Texture {
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatalf("could not open file: %v\n", err)
@@ -37,9 +37,9 @@ func PNG(filePath string) Texture {
 	rgba := image.NewRGBA(img.Bounds())
 	draw.Draw(rgba, rgba.Bounds(), img, image.Point{}, draw.Src)
 
-	var texture uint32
-	gl.GenTextures(1, &texture)
-	gl.BindTexture(gl.TEXTURE_2D, texture)
+	var image uint32
+	gl.GenTextures(1, &image)
+	gl.BindTexture(gl.TEXTURE_2D, image)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(rgba.Bounds().Dx()), int32(rgba.Bounds().Dy()), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -48,7 +48,7 @@ func PNG(filePath string) Texture {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	return Texture{
-		Image: texture,
+		Image: image,
 		Size: vec2.New(
 			float32(rgba.Bounds().Dx()),
 			float32(rgba.Bounds().Dy()),

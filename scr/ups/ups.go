@@ -219,14 +219,14 @@ func (t *Tags) Delete(tags ...string) {
 	}
 }
 
-func (t *Tags) Has(tag string) bool {
-	_, exists := (*t)[tag]
-	return exists
-}
-
 func (t *Tags) Set(tags ...string) {
 	(*t) = make(map[string]struct{}, len(tags))
 	for _, tag := range tags {
 		(*t)[tag] = struct{}{}
 	}
+}
+
+func (t *Tags) Has(tag string) bool {
+	_, exists := (*t)[tag]
+	return exists
 }

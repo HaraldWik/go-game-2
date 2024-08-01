@@ -25,7 +25,6 @@ func main() {
 	window.Open()
 
 	sceneMain := ups.SceneManager.NewScene()
-	gnomeScene := ups.SceneManager.NewScene()
 	secretScene := ups.SceneManager.NewScene()
 
 	// Secret scene
@@ -42,7 +41,7 @@ func main() {
 	secretScene.NewObject(
 		"Secret",
 		ups.Data{
-			"Material":  d2d.NewMaterial2D(load.PNG("../assets/texture.png"), vec3.All(0.5), 1.0),
+			"Material":  d2d.NewMaterial2D(load.NewTexture("../assets/texture.png"), vec3.All(0.5), 1.0),
 			"Transform": d2d.NewTransform2D(vec2.New(0.0, 0.0), vec2.New(36.75, 20.0), 0.0),
 		},
 		[]ups.System{
@@ -62,12 +61,12 @@ func main() {
 		},
 	)
 
-	// Gnome scene
+	// MainScen
 
-	gnomeScene.NewObject(
-		"Gnome",
+	sceneMain.NewObject(
+		"BackroundGnome",
 		ups.Data{
-			"Material":  d2d.NewMaterial2D(load.PNG("../assets/gnome.png"), vec3.All(0.5), 0.0),
+			"Material":  d2d.NewMaterial2D(load.NewTexture("../assets/gnome.png"), vec3.All(0.5), -9.0),
 			"Transform": d2d.NewTransform2D(vec2.New(0.0, 0.0), vec2.New(16.0, 13.0), 25.0),
 
 			"Min":   float32(-40.0),
@@ -79,8 +78,6 @@ func main() {
 			FlipRotate{},
 		},
 	)
-
-	// MainScen
 
 	sceneMain.NewObject(
 		"Skybox",
@@ -143,10 +140,10 @@ func main() {
 	)
 
 	sceneMain.NewObject(
-		"Obstical",
+		"Obsticle",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.PNG("../assets/gnome.png"),
+				load.NewTexture("../assets/gnome.png"),
 				vec3.New(1.0, 1.0, 1.0),
 				1.0,
 			),
@@ -159,7 +156,7 @@ func main() {
 		},
 		[]ups.System{
 			s2d.RenderRectangle2D{},
-			Obstical{},
+			Obsticle{},
 			FlipRotate{},
 		},
 	).Clone(
@@ -203,15 +200,15 @@ func main() {
 		"Manager",
 		ups.Data{},
 		[]ups.System{
-			ObsticalManager{},
+			ObsticleManager{},
 		},
 	)
 
-	music := load.AUDIO("../assets/Alla-Turca(chosic.com).mp3")
+	music := load.NewAudio("../assets/Alla-Turca(chosic.com).mp3")
 	music.Play(-1)
 	music.SetVolume(20)
 
-	ups.SceneManager.SetCurrentScenes(gnomeScene.ID, sceneMain.ID)
+	ups.SceneManager.SetCurrentScenes(sceneMain.ID)
 
 	var toggleMenu bool
 
@@ -219,7 +216,7 @@ func main() {
 		window.BeginDraw()
 
 		if input.IsJustPressed(input.M_LMB) || !toggleMenu {
-			ups.SceneManager.SetCurrentScenes(gnomeScene.ID, sceneMain.ID)
+			ups.SceneManager.SetCurrentScenes(sceneMain.ID)
 			toggleMenu = false
 		}
 		if input.IsJustPressed(input.M_RMB) || toggleMenu {
@@ -281,22 +278,22 @@ func (r FlipRotate) Update(obj *ups.Object, deltaTime float32) {
 	obj.Data.Set("Flip", flip)
 }
 
-type ObsticalManager struct{}
+type ObsticleManager struct{}
 
-func (m ObsticalManager) Start(obj *ups.Object) {
+func (m ObsticleManager) Start(obj *ups.Object) {
 	var (
 		player = obj.Scene.FindByTag("Player")[0]
 	)
 
-	obj.Data.Set("Obsticals", obj.Scene.FindByTag("Obstical"))
+	obj.Data.Set("Obsticles", obj.Scene.FindByTag("Obsticle"))
 	obj.Data.Set("Player", player)
 	obj.Data.Set("HasDied", false)
 	obj.Data.Set("CanDie", true)
 }
 
-func (m ObsticalManager) Update(obj *ups.Object, deltaTime float32) {
+func (m ObsticleManager) Update(obj *ups.Object, deltaTime float32) {
 	var (
-		obsticals = obj.Data.Get("Obsticals").([]*ups.Object)
+		obsticles = obj.Data.Get("Obsticles").([]*ups.Object)
 		player    = obj.Data.Get("Player").(*ups.Object)
 		hasDied   = obj.Data.Get("HasDied").(bool)
 		canDie    = obj.Data.Get("CanDie").(bool)
@@ -309,11 +306,11 @@ func (m ObsticalManager) Update(obj *ups.Object, deltaTime float32) {
 		obj.Scene.DeleteObject("Gnome")
 	}
 
-	for _, obs := range obsticals {
+	for _, obs := range obsticles {
 		playerTransform := player.Data.Get("Transform").(d2d.Transform2D)
 		obsTransform := obs.Data.Get("Transform").(d2d.Transform2D)
 
-		for _, otherObs := range obsticals {
+		for _, otherObs := range obsticles {
 			if otherObs.Name != obs.Name {
 				otherObsTransform := otherObs.Data.Get("Transform").(d2d.Transform2D)
 
@@ -351,7 +348,7 @@ func (m ObsticalManager) Update(obj *ups.Object, deltaTime float32) {
 			"You-died",
 			ups.Data{
 				"Material": d2d.NewMaterial2D(
-					load.PNG("../assets/you_died.png"),
+					load.NewTexture("../assets/you_died.png"),
 					vec3.All(1.0), 9.0,
 				),
 				"Transform": d2d.NewTransform2D(
@@ -368,7 +365,7 @@ func (m ObsticalManager) Update(obj *ups.Object, deltaTime float32) {
 			"Gnome",
 			ups.Data{
 				"Material": d2d.NewMaterial2D(
-					load.PNG("../assets/gnome.png"),
+					load.NewTexture("../assets/gnome.png"),
 					vec3.New(1.0, 0.5, 0.5),
 					8.0,
 				),
@@ -388,21 +385,23 @@ func (m ObsticalManager) Update(obj *ups.Object, deltaTime float32) {
 	}
 }
 
-type Obstical struct{}
+type Obsticle struct{}
 
-func (o Obstical) Start(obj *ups.Object) {
+func (o Obsticle) Start(obj *ups.Object) {
 	var (
 		transform = obj.Data.Get("Transform").(d2d.Transform2D)
 		offset    = obj.Data.Get("Offset").(float32)
 	)
 
-	transform.Position.X += offset
+	transform.Position.X = offset
 
 	obj.Data.Set("Transform", transform)
 	obj.Data.Set("hasBeenjumpedOver", false)
+
+	obj.Tags.Add("Obsticle")
 }
 
-func (o Obstical) Update(obj *ups.Object, deltaTime float32) {
+func (o Obsticle) Update(obj *ups.Object, deltaTime float32) {
 	var (
 		transform = obj.Data.Get("Transform").(d2d.Transform2D)
 	)

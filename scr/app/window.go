@@ -4,6 +4,7 @@ import (
 	"log"
 	"runtime"
 
+	gfx "github.com/HaraldWik/go-game-2/scr/graphics"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -107,6 +108,7 @@ func (w *Window) BeginDraw() {
 }
 
 func (w *Window) EndDraw() {
+	gfx.GFX2D.DrawCycle()
 	w.SDL.GLSwap()
 	sdl.Delay(uint32(1000 / w.MaxFPS))
 }

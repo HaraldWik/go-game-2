@@ -13,13 +13,13 @@ Go Game 2 will always be under open source
 ---
 ***Dependencies***
 ---
-This game engine/framework has 1 dependencies
-SDl2
-```link
 https://github.com/libsdl-org/SDL/releases/tag/release-2.30.4
-```
+
 ```SDL
-go get github.com/veandco/go-sdl2 v0.4.40
+go get -u github.com/veandco/go-sdl2
+```
+```OpenGl
+go get -u github.com/go-gl/gl/v2.1/gl
 ```
 
 ---

@@ -1,4 +1,4 @@
-package sys
+package s3d
 
 import (
 	"log"
@@ -11,8 +11,6 @@ import (
 )
 
 type RenderCube3D struct{}
-
-func (c RenderCube3D) Start(obj *ups.Object) {}
 
 func (c RenderCube3D) Update(obj *ups.Object, deltaTime float32) {
 	var (

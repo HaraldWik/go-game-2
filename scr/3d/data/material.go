@@ -1,9 +1,6 @@
 package d3d
 
 import (
-	_ "image/jpeg"
-	_ "image/png"
-
 	load "github.com/HaraldWik/go-game-2/scr/loaders"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 )

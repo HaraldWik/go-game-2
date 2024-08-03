@@ -8,8 +8,6 @@ import (
 
 type Skybox2D struct{}
 
-func (s Skybox2D) Start(obj *ups.Object) {}
-
 func (s Skybox2D) Update(obj *ups.Object, deltaTime float32) {
 	var (
 		color = obj.Data.Get("Color").(vec3.Type)

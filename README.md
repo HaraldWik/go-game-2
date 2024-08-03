@@ -8,7 +8,7 @@ Go Game 2 want to be simple to use for beginers and flexible for experienced dev
 ---
 ***Information***
 ---
-Go Game 2 will always be under open source
+Go Game 2 will always be open source
 
 ---
 ***Dependencies***
@@ -21,12 +21,6 @@ go get -u github.com/veandco/go-sdl2
 ```OpenGl
 go get -u github.com/go-gl/gl/v2.1/gl
 ```
-
----
-***Latest Release***
----
-Added update system! and ported things to it
-
-![image](https://github.com/user-attachments/assets/a1a6d249-102a-47b5-b343-959d5da799e7)
-
----
+```Freetype
+go get -u github.com/golang/freetype
+```

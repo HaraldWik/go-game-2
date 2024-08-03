@@ -1,4 +1,4 @@
-package sys
+package s3d
 
 import (
 	"math"
@@ -10,8 +10,6 @@ import (
 )
 
 type Camera3D struct{}
-
-func (c Camera3D) Start(obj *ups.Object) {}
 
 func (c Camera3D) Update(obj *ups.Object, deltaTime float32) {
 	var (

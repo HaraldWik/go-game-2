@@ -22,15 +22,15 @@ func (g *gfx2D) AddObject(obj *ups.Object) {
 
 func (g *gfx2D) DrawCycle() {
 	sort.Slice(g.Objects, func(i, j int) bool {
-		return g.Objects[i].Data.Get("Material").(d2d.Material2D).Z < g.Objects[j].Data.Get("Material").(d2d.Material2D).Z
+		materialI := g.Objects[i].Data.Get("Material").(d2d.Material2D)
+		materialJ := g.Objects[j].Data.Get("Material").(d2d.Material2D)
+		return materialI.Z < materialJ.Z
 	})
 
 	for _, obj := range g.Objects {
-		var (
-			transform = obj.Data.Get("Transform").(d2d.Transform2D)
-			material  = obj.Data.Get("Material").(d2d.Material2D)
-			vertices  = obj.Data.Get("Vertices").([]vec2.Type)
-		)
+		transform := obj.Data.Get("Transform").(d2d.Transform2D)
+		material := obj.Data.Get("Material").(d2d.Material2D)
+		vertices := obj.Data.Get("Vertices").([]vec2.Type)
 
 		if len(vertices) < 3 {
 			log.Fatalf("RenderMesh2D requires at least 3 vertices")
@@ -38,7 +38,6 @@ func (g *gfx2D) DrawCycle() {
 
 		gl.MatrixMode(gl.MODELVIEW)
 		gl.PushMatrix()
-
 		gl.LoadIdentity()
 		gl.Translatef(transform.Position.X, transform.Position.Y, 0.0)
 		gl.Rotatef(-transform.Rotation, 0.0, 0.0, 1.0)
@@ -52,7 +51,7 @@ func (g *gfx2D) DrawCycle() {
 		gl.Color3f(material.Alpha.X, material.Alpha.Y, material.Alpha.Z)
 
 		minX, minY := vertices[0].X, vertices[0].Y
-		maxX, maxY := vertices[0].X, vertices[0].Y
+		maxX, maxY := minX, minY
 
 		for _, v := range vertices {
 			if v.X < minX {
@@ -71,9 +70,8 @@ func (g *gfx2D) DrawCycle() {
 
 		width := maxX - minX
 		height := maxY - minY
-
-		centerX := (minX + maxX) / 2
-		centerY := (minY + maxY) / 2
+		centerX := (minX + maxX) / 2.0
+		centerY := (minY + maxY) / 2.0
 
 		gl.Begin(gl.TRIANGLE_FAN)
 		for _, vertex := range vertices {
@@ -82,6 +80,7 @@ func (g *gfx2D) DrawCycle() {
 
 			tx := (vertex.X - minX) / width
 			ty := 1.0 - (vertex.Y-minY)/height
+
 			gl.TexCoord2f(tx, ty)
 			gl.Vertex2f(adjustedX, adjustedY)
 		}
@@ -89,12 +88,12 @@ func (g *gfx2D) DrawCycle() {
 
 		gl.Disable(gl.TEXTURE_2D)
 		gl.Disable(gl.BLEND)
-
 		gl.PopMatrix()
 
 		if err := gl.GetError(); err != gl.NO_ERROR {
-			log.Fatalf("OpenGL Error: %v\n", err)
+			log.Fatalf("OpenGL Error: %v", err)
 		}
 	}
+
 	g.Objects = g.Objects[:0]
 }

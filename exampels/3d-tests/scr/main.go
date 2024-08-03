@@ -1,69 +1,77 @@
 package main
 
 import (
+	s2d "github.com/HaraldWik/go-game-2/scr/2d/systems"
+	d3d "github.com/HaraldWik/go-game-2/scr/3d/data"
+	s3d "github.com/HaraldWik/go-game-2/scr/3d/systems"
 	"github.com/HaraldWik/go-game-2/scr/app"
-	dt "github.com/HaraldWik/go-game-2/scr/data-types"
 	"github.com/HaraldWik/go-game-2/scr/input"
-	load "github.com/HaraldWik/go-game-2/scr/loaders"
-	sys "github.com/HaraldWik/go-game-2/scr/systems"
 	"github.com/HaraldWik/go-game-2/scr/ups"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 )
 
+var SceneMain = ups.SceneManager.New()
+
 func main() {
-	app := app.New()
-	win := app.NewWindow("Window!!!", vec2.New(1920, 1075))
-	win.Flags = win.FLAG_RESIZABLE
-	win.Open()
+	application := app.New()
+	window := application.NewWindow("Window!!!", vec2.New(1920, 1075))
+	window.SetFlags(window.FLAG_RESIZABLE)
+	window.SetMaxFPS(60)
+	window.Open()
 
-	sceneMain := ups.NewScene()
-
-	sceneMain.NewObject(
+	SceneMain.New(
 		"Camera3D",
 		ups.Data{
-			"Window":    win,
-			"Transform": dt.NewTransform3D(vec3.New(0.0, 0.0, 0.0), vec3.All(1.0), vec3.New(0.0, 45.0, 0.0)),
-			"Fov":       float32(50),
-			"Speed":     float32(10.0),
+			"Window": window,
+			"Transform": d3d.NewTransform3D(
+				vec3.New(0.0, 0.0, 0.0),
+				vec3.All(1.0),
+				vec3.New(0.0, 45.0, 0.0),
+			),
+			"Fov":   float32(50),
+			"Speed": float32(10.0),
 		},
 		[]ups.System{
-			sys.Camera3D{},
+			s3d.Camera3D{},
 			CameraController3D{},
 		},
-		"Camera",
 	)
 
-	sceneMain.NewObject(
-		"Cube3D",
+	SceneMain.New(
+		"Skybox",
 		ups.Data{
-			"Color":     vec3.All(1.0),
-			"Transform": dt.NewTransform3D(vec3.New(0.0, 0.0, -10.0), vec3.All(0.1), vec3.New(45.0, 45.0, 45.0)),
+			"Color": vec3.New(0.0, 0.1, 0.9),
 		},
 		[]ups.System{
-			sys.RenderCube3D{},
+			s2d.Skybox2D{},
+		},
+	)
+
+	SceneMain.New(
+		"Cube3D",
+		ups.Data{
+			"Color": vec3.All(1.0),
+			"Transform": d3d.NewTransform3D(
+				vec3.New(0.0, 0.0, -10.0),
+				vec3.All(0.1),
+				vec3.New(45.0, 45.0, 45.0),
+			),
+		},
+		[]ups.System{
+			s3d.RenderCube3D{},
 			Jump{},
 		},
 	)
 
-	sceneMain.NewObject(
-		"Model",
-		ups.Data{
-			"Material":  dt.NewMaterial(load.PNG("../assets/Chair jungle_1.png"), vec3.All(1.0)),
-			"Transform": dt.NewTransform3D(vec3.New(0.0, 0.0, -10.0), vec3.All(0.1), vec3.New(45.0, 45.0, 45.0)),
-			"Model":     load.OBJ("../assets/Chair jungle.obj"),
-		},
-		[]ups.System{
-			sys.RenderObj3D{},
-		},
-	)
+	ups.SceneManager.Set(SceneMain.ID)
 
-	for !win.CloseEvent() {
-		win.BeginDraw(vec3.New(0.0, 0.144, 0.856))
+	for !window.CloseEvent() {
+		window.BeginDraw()
 
-		sceneMain.Update(win.GetDeltaTime())
+		ups.SceneManager.Update(window.GetDeltaTime())
 
-		win.EndDraw(60)
+		window.EndDraw()
 	}
 }
 
@@ -73,7 +81,7 @@ func (j Jump) Start(obj *ups.Object) {}
 
 func (j Jump) Update(obj *ups.Object, deltaTime float32) {
 	var (
-		transform = obj.Data.Get("Transform").(dt.Transform3D)
+		transform = obj.Data.Get("Transform").(d3d.Transform3D)
 	)
 
 	transform.Pos.X = 2
@@ -83,7 +91,7 @@ type CameraController3D struct{}
 
 func (c CameraController3D) Start(obj *ups.Object) {
 	var (
-		transform = obj.Data.Get("Transform").(dt.Transform3D)
+		transform = obj.Data.Get("Transform").(d3d.Transform3D)
 	)
 
 	obj.Data.Set("Target", transform)
@@ -91,9 +99,9 @@ func (c CameraController3D) Start(obj *ups.Object) {
 
 func (c CameraController3D) Update(obj *ups.Object, deltaTime float32) {
 	var (
-		transform = obj.Data.Get("Transform").(dt.Transform3D)
+		transform = obj.Data.Get("Transform").(d3d.Transform3D)
 		speed     = obj.Data.Get("Speed").(float32)
-		target    = obj.Data.Get("Target").(dt.Transform3D)
+		target    = obj.Data.Get("Target").(d3d.Transform3D)
 	)
 
 	if input.IsPressed(input.K_W) {

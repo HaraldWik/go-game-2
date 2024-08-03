@@ -28,7 +28,7 @@ func FileExists(filename string) bool {
 func OBJ(filename string) Obj {
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatalf("Failed to open file '%s': %v\n", filename, err)
+		log.Fatalf("Failed to open file '%s': %v", filename, err)
 	}
 	defer file.Close()
 

@@ -3,71 +3,97 @@ package main
 import (
 	"math"
 
+	d2d "github.com/HaraldWik/go-game-2/scr/2d/data"
+	s2d "github.com/HaraldWik/go-game-2/scr/2d/systems"
 	"github.com/HaraldWik/go-game-2/scr/app"
-	dt "github.com/HaraldWik/go-game-2/scr/data-types"
 	"github.com/HaraldWik/go-game-2/scr/input"
 	load "github.com/HaraldWik/go-game-2/scr/loaders"
-	sys "github.com/HaraldWik/go-game-2/scr/systems"
 	"github.com/HaraldWik/go-game-2/scr/ups"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
 )
 
+var (
+	MainScene = ups.SceneManager.New()
+)
+
 func main() {
 	app := app.New()
 	window := app.NewWindow("Tired Tires", vec2.New(1920, 1075))
-	window.Flags = window.FLAG_RESIZABLE
+	window.SetFlags(window.FLAG_RESIZABLE)
+	window.SetMaxFPS(100)
 	window.Open()
 
-	player := ups.NewObject(
-		"Player",
-		ups.Data{
-			"Material":  dt.NewMaterial(load.EmptyTexture(), vec3.All(1.0)),
-			"Transform": dt.NewTransform2D(vec2.New(-10.0, 5), vec2.All(1.0), 0.0),
-		},
-		[]ups.System{
-			sys.RenderTriangle2D{},
-			CarController{},
-			sys.AABB{},
-		},
-	)
-
-	ups.NewObject(
+	MainScene.New(
 		"Camera2D",
 		ups.Data{
-			"Window":    window,
-			"Transform": player.Data.Get("Transform").(dt.Transform2D),
-			"Zoom":      float32(10),
+			"Window": window,
+			"Transform": d2d.NewTransform2D(
+				vec2.Zero(),
+				vec2.Zero(),
+				0.0,
+			),
+			"Zoom": float32(10),
 		},
 		[]ups.System{
-			sys.Camera2D{},
+			s2d.Camera2D{},
 			FollowPlayer{},
 		},
 	)
 
-	ups.NewObject(
-		"Thing",
+	MainScene.New(
+		"Skybox",
 		ups.Data{
-			"Material": dt.NewMaterial(
-				load.EmptyTexture(),
-				vec3.New(1.0, 0.0, 0.0),
-			),
-			"Transform": dt.NewTransform2D(vec2.New(0.0, 6.0), vec2.All(1.0), 0.0),
+			"Color": vec3.New(0.0, 0.144, 0.856),
 		},
 		[]ups.System{
-			sys.RenderRectangle2D{},
-			sys.AABB{},
+			s2d.Skybox2D{},
 		},
 	)
 
-	ups.NewObject(
-		"Thing2",
+	MainScene.New(
+		"Player",
 		ups.Data{
-			"Material": dt.NewMaterial(
+			"Material": d2d.NewMaterial2D(
+				load.EmptyTexture(),
+				vec3.All(1.0),
+				1.0,
+			),
+			"Transform": d2d.NewTransform2D(vec2.New(-10.0, 5), vec2.All(1.0), 0.0),
+		},
+		[]ups.System{
+			s2d.RenderTriangle2D{},
+			CarController{},
+			s2d.AABB{},
+		},
+	)
+
+	MainScene.New(
+		"Thing",
+		ups.Data{
+			"Material": d2d.NewMaterial2D(
 				load.EmptyTexture(),
 				vec3.New(1.0, 0.0, 0.0),
+				1.0,
 			),
-			"Transform": dt.NewTransform2D(vec2.New(-2.0, 6.0), vec2.All(1.0), 0.0),
+			"Transform": d2d.NewTransform2D(vec2.New(0.0, 6.0), vec2.All(1.0), 0.0),
+		},
+		[]ups.System{
+			s2d.RenderRectangle2D{},
+			s2d.AABB{},
+			s2d.StaticAABB{},
+		},
+	)
+
+	MainScene.New(
+		"Thing2",
+		ups.Data{
+			"Material": d2d.NewMaterial2D(
+				load.EmptyTexture(),
+				vec3.New(1.0, 0.0, 0.0),
+				1.0,
+			),
+			"Transform": d2d.NewTransform2D(vec2.New(-2.0, 6.0), vec2.All(1.0), 0.0),
 			"Vertices": []vec2.Type{
 				vec2.New(1.000000, 0.000000),
 				vec2.New(0.923880, 0.382683),
@@ -88,41 +114,42 @@ func main() {
 			},
 		},
 		[]ups.System{
-			sys.RenderMesh2D{},
-			sys.AABB{},
+			s2d.RenderMesh2D{},
+			s2d.AABB{},
+			s2d.StaticAABB{},
 		},
 	)
 
+	ups.SceneManager.Set(MainScene.ID)
+
 	for !window.CloseEvent() {
-		window.BeginDraw(vec3.New(0.0, 0.144, 0.856))
+		window.BeginDraw()
 
-		ups.Engine.Update(window.GetDeltaTime())
+		ups.SceneManager.Update(window.GetDeltaTime())
 
-		window.EndDraw(100)
+		window.EndDraw()
 	}
 }
 
 type CarController struct{}
 
-func (c CarController) Start() {
+func (c CarController) Start(obj *ups.Object) {
 	var (
-		obj       = ups.Engine.GetParent()
-		transform = obj.Data.Get("Transform").(dt.Transform2D)
+		transform = obj.Data.Get("Transform").(d2d.Transform2D)
 	)
 
 	obj.Data.Set("Velocity", transform)
 	obj.Data.Set("Acceleration", float32(0))
 
-	engineSound := load.AUDIO("../assets/car_engine.wav")
+	engineSound := load.NewAudio("../assets/car_engine.wav")
 	engineSound.SetVolume(5)
 	engineSound.Play(-1)
 }
 
-func (c CarController) Update(deltaTime float32) {
+func (c CarController) Update(obj *ups.Object, deltaTime float32) {
 	var (
-		obj          = ups.Engine.GetParent()
-		transform    = obj.Data.Get("Transform").(dt.Transform2D)
-		velocity     = obj.Data.Get("Velocity").(dt.Transform2D)
+		transform    = obj.Data.Get("Transform").(d2d.Transform2D)
+		velocity     = obj.Data.Get("Velocity").(d2d.Transform2D)
 		acceleration = obj.Data.Get("Acceleration").(float32)
 	)
 
@@ -188,15 +215,14 @@ func (c CarController) Update(deltaTime float32) {
 
 type FollowPlayer struct{}
 
-func (f FollowPlayer) Start() {}
+func (f FollowPlayer) Start(obj *ups.Object) {}
 
-func (f FollowPlayer) Update(deltaTime float32) {
+func (f FollowPlayer) Update(obj *ups.Object, deltaTime float32) {
 	var (
-		obj       = ups.Engine.GetParent()
-		transform = obj.Data.Get("Transform").(dt.Transform2D)
+		transform = obj.Data.Get("Transform").(d2d.Transform2D)
 
-		player       = ups.Engine.FindTag("Player")[0]
-		target       = player.Data.Get("Transform").(dt.Transform2D)
+		player       = obj.Scene.GetByTag("Player")[0]
+		target       = player.Data.Get("Transform").(d2d.Transform2D)
 		acceleration = player.Data.Get("Acceleration").(float32)
 	)
 

@@ -11,6 +11,7 @@ import (
 )
 
 type Texture struct {
+	Path  string
 	Image uint32
 	Size  vec2.Type
 }
@@ -25,13 +26,13 @@ func EmptyTexture() Texture {
 func NewTexture(filePath string) Texture {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalf("could not open file: %v\n", err)
+		log.Fatalf("could not open file: %v", err)
 	}
 	defer file.Close()
 
 	img, _, err := image.Decode(file)
 	if err != nil {
-		log.Fatalf("could not decode image: %v\n", err)
+		log.Fatalf("could not decode image: %v", err)
 	}
 
 	rgba := image.NewRGBA(img.Bounds())
@@ -48,6 +49,7 @@ func NewTexture(filePath string) Texture {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	return Texture{
+		Path:  filePath,
 		Image: image,
 		Size: vec2.New(
 			float32(rgba.Bounds().Dx()),

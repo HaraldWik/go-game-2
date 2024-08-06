@@ -18,31 +18,28 @@ func (c Camera3D) Update(obj *ups.Object, deltaTime float32) {
 		fov       = obj.Data.Get("Fov").(float32)
 	)
 
-	gl.Viewport(0, 0, int32(window.GetSize().X), int32(window.GetSize().Y))
+	near := 0.1
+	far := 100.0
 
-	// Set up the projection matrix
+	// Perspective projection matrix
 	gl.MatrixMode(gl.PROJECTION)
 	gl.LoadIdentity()
+	f := 1.0 / math.Tan(float64(fov)/2.0*math.Pi/180.0)
+	gl.Frustum(
+		-float64(window.GetSize().X)*f, float64(window.GetSize().Y)*f,
+		-f, f,
+		near, far,
+	)
 
-	// Compute perspective projection matrix
-	aspectRatio := float64(window.GetSize().X) / float64(window.GetSize().Y)
-	gluPerspective(float64(fov), aspectRatio, 0.1, 100.0)
-
-	// Set up the modelview matrix
+	// View matrix
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
 
-	// Apply transformations
-	gl.Translatef(transform.Pos.X, transform.Pos.Y, transform.Pos.Z)
-	gl.Rotatef(transform.Rot.X, 1, 0, 0) // Rotations are typically around axes, so adjust accordingly
-	gl.Rotatef(transform.Rot.Y, 0, 1, 0)
-	gl.Rotatef(transform.Rot.Z, 0, 0, 1)
+	// Apply camera rotations (pitch, yaw, roll)
+	gl.Rotatef(float32(-transform.Rotation.X), 1.0, 0.0, 0.0)
+	gl.Rotatef(float32(-transform.Rotation.Y), 0.0, 1.0, 0.0)
+	gl.Rotatef(float32(-transform.Rotation.Z), 0.0, 0.0, 1.0)
 
-	gl.PopMatrix()
-}
-
-func gluPerspective(fovY, aspect, zNear, zFar float64) {
-	fH := math.Tan(fovY*math.Pi/360) * zNear
-	fW := fH * aspect
-	gl.Frustum(-fW, fW, -fH, fH, zNear, zFar)
+	// Apply camera translation
+	gl.Translatef(float32(-transform.Position.X), float32(-transform.Position.Y), float32(-transform.Position.Z))
 }

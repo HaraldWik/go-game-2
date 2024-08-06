@@ -10,7 +10,7 @@ import (
 
 type Camera2D struct{}
 
-func (c Camera2D) Update(obj *ups.Object, deltaTime float32) {
+func (c Camera2D) FixedUpdate(obj *ups.Object) {
 	var (
 		window    = obj.Data.Get("Window").(app.Window)
 		transform = obj.Data.Get("Transform").(d2d.Transform2D)

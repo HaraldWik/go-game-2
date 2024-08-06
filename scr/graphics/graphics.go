@@ -33,7 +33,7 @@ func (g *gfx2D) DrawCycle() {
 		vertices := obj.Data.Get("Vertices").([]vec2.Type)
 
 		if len(vertices) < 3 {
-			log.Fatalf("RenderMesh2D requires at least 3 vertices")
+			log.Fatalf("Rendering a Mesh2D on '%s' requires at least 3 vertices", obj.Name)
 		}
 
 		gl.MatrixMode(gl.MODELVIEW)
@@ -48,8 +48,19 @@ func (g *gfx2D) DrawCycle() {
 		gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 		gl.BindTexture(gl.TEXTURE_2D, material.Texture.Image)
 
-		gl.Color3f(material.Alpha.X, material.Alpha.Y, material.Alpha.Z)
+		gl.Color4f(material.Color.X, material.Color.Y, material.Color.Z, material.Opacity)
 
+		// Convert pixel region to texture coordinates
+		textureSize := material.Texture.Size
+		region := material.Region
+
+		// Calculate the normalized texture coordinates based on the region
+		texCoordMinX := region.X / float32(textureSize.X)
+		texCoordMinY := region.Y / float32(textureSize.Y)
+		texCoordMaxX := (region.X + region.Z) / float32(textureSize.X)
+		texCoordMaxY := (region.Y + region.W) / float32(textureSize.Y)
+
+		// Calculate bounding box for vertices
 		minX, minY := vertices[0].X, vertices[0].Y
 		maxX, maxY := minX, minY
 
@@ -78,10 +89,15 @@ func (g *gfx2D) DrawCycle() {
 			adjustedX := vertex.X - centerX
 			adjustedY := vertex.Y - centerY
 
+			// Map vertices to texture coordinates
 			tx := (vertex.X - minX) / width
 			ty := 1.0 - (vertex.Y-minY)/height
 
-			gl.TexCoord2f(tx, ty)
+			// Adjust texture coordinates to the specified region
+			texCoordX := texCoordMinX + (texCoordMaxX-texCoordMinX)*tx
+			texCoordY := texCoordMinY + (texCoordMaxY-texCoordMinY)*ty
+
+			gl.TexCoord2f(texCoordX, texCoordY)
 			gl.Vertex2f(adjustedX, adjustedY)
 		}
 		gl.End()

@@ -11,6 +11,7 @@ import (
 	"github.com/HaraldWik/go-game-2/scr/ups"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
+	vec4 "github.com/HaraldWik/go-game-2/scr/vector/4"
 )
 
 var (
@@ -55,8 +56,10 @@ func main() {
 		"Player",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.EmptyTexture(),
+				load.NewEmptyTexture(),
+				vec4.Zero(),
 				vec3.All(1.0),
+				1.0,
 				1.0,
 			),
 			"Transform": d2d.NewTransform2D(vec2.New(-10.0, 5), vec2.All(1.0), 0.0),
@@ -72,8 +75,10 @@ func main() {
 		"Thing",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.EmptyTexture(),
+				load.NewEmptyTexture(),
+				vec4.Zero(),
 				vec3.New(1.0, 0.0, 0.0),
+				1.0,
 				1.0,
 			),
 			"Transform": d2d.NewTransform2D(vec2.New(0.0, 6.0), vec2.All(1.0), 0.0),
@@ -89,8 +94,10 @@ func main() {
 		"Thing2",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.EmptyTexture(),
+				load.NewEmptyTexture(),
+				vec4.Zero(),
 				vec3.New(1.0, 0.0, 0.0),
+				1.0,
 				1.0,
 			),
 			"Transform": d2d.NewTransform2D(vec2.New(-2.0, 6.0), vec2.All(1.0), 0.0),
@@ -119,8 +126,6 @@ func main() {
 			s2d.StaticAABB{},
 		},
 	)
-
-	ups.SceneManager.Set(MainScene.ID)
 
 	for !window.CloseEvent() {
 		window.BeginDraw()

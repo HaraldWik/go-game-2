@@ -13,7 +13,53 @@ import (
 	"github.com/HaraldWik/go-game-2/scr/ups"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
+	vec4 "github.com/HaraldWik/go-game-2/scr/vector/4"
 )
+
+type ColorChange struct{}
+
+func (c ColorChange) Start(obj *ups.Object) {
+	obj.Data.Set("Time", float32(0.0))
+	obj.Data.Set("Toggle", false)
+}
+
+func (c ColorChange) FixedUpdate(obj *ups.Object) {
+	var (
+		material = obj.Data.Get("Material").(d2d.Material2D)
+		time     = obj.Data.Get("Time").(float32)
+		toggle   = obj.Data.Get("Toggle").(bool)
+	)
+
+	if input.IsJustPressed(input.K_DELETE) {
+		toggle = !toggle
+	}
+
+	if !toggle {
+		material.Opacity = 0.0
+	} else {
+		time += 0.05
+
+		r := float32((math.Sin(float64(time)) + 1) / 2)
+		g := float32((math.Sin(float64(time)+2*math.Pi/3) + 1) / 2)
+		b := float32((math.Sin(float64(time)+4*math.Pi/3) + 1) / 2)
+
+		material.Color.X = r
+		material.Color.Y = g
+		material.Color.Z = b
+		material.Opacity = float32(math.Abs(float64(r/2.0+g/2.0-b/4.0)) * math.Pi / 2.0)
+
+		if material.Opacity > 0.985 {
+			material.Opacity = 0.985
+		}
+		if material.Opacity < 0.5 {
+			material.Opacity = 0.5
+		}
+	}
+
+	obj.Data.Set("Material", material)
+	obj.Data.Set("Time", time)
+	obj.Data.Set("Toggle", toggle)
+}
 
 type Rotate struct{}
 
@@ -32,11 +78,13 @@ func (r FlipRotate) Start(obj *ups.Object) {
 }
 
 func (r FlipRotate) Update(obj *ups.Object, deltaTime float32) {
-	transform := obj.Data.Get("Transform").(d2d.Transform2D)
-	flip := obj.Data.Get("Flip").(bool)
-	min := obj.Data.Get("Min").(float32)
-	max := obj.Data.Get("Max").(float32)
-	speed := obj.Data.Get("Speed").(float32)
+	var (
+		transform = obj.Data.Get("Transform").(d2d.Transform2D)
+		flip      = obj.Data.Get("Flip").(bool)
+		min       = obj.Data.Get("Min").(float32)
+		max       = obj.Data.Get("Max").(float32)
+		speed     = obj.Data.Get("Speed").(float32)
+	)
 
 	if transform.Rotation >= max {
 		flip = false
@@ -149,6 +197,7 @@ func (d Death) Update(obj *ups.Object, deltaTime float32) {
 	}
 
 	if obj.Tags.Has("Die") && obj.Tags.Has("Killable") {
+		score = 0
 		obj.Tags.Remove("Killable")
 		ups.SceneManager.Add(DeathScreen.ID)
 
@@ -157,7 +206,10 @@ func (d Death) Update(obj *ups.Object, deltaTime float32) {
 			ups.Data{
 				"Material": d2d.NewMaterial2D(
 					load.NewTexture(data.Get(data.AssetPath)+"you_died.png"),
-					vec3.All(1.0), 10.0,
+					vec4.Zero(),
+					vec3.All(1.0),
+					1.0,
+					10.0,
 				),
 				"Transform": d2d.NewTransform2D(
 					vec2.New(0.0, 7.0),
@@ -174,7 +226,9 @@ func (d Death) Update(obj *ups.Object, deltaTime float32) {
 			ups.Data{
 				"Material": d2d.NewMaterial2D(
 					load.NewTexture(data.Get(data.AssetPath)+"gnome.png"),
+					vec4.Zero(),
 					vec3.New(1.0, 0.5, 0.5),
+					1.0,
 					10.0,
 				),
 				"Transform": d2d.NewTransform2D(

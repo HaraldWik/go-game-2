@@ -54,17 +54,14 @@ func main() {
 			"Color": vec3.All(1.0),
 			"Transform": d3d.NewTransform3D(
 				vec3.New(0.0, 0.0, -10.0),
-				vec3.All(0.1),
+				vec3.All(100.0),
 				vec3.New(45.0, 45.0, 45.0),
 			),
 		},
 		[]ups.System{
 			s3d.RenderCube3D{},
-			Jump{},
 		},
 	)
-
-	ups.SceneManager.Set(SceneMain.ID)
 
 	for !window.CloseEvent() {
 		window.BeginDraw()
@@ -73,18 +70,6 @@ func main() {
 
 		window.EndDraw()
 	}
-}
-
-type Jump struct{}
-
-func (j Jump) Start(obj *ups.Object) {}
-
-func (j Jump) Update(obj *ups.Object, deltaTime float32) {
-	var (
-		transform = obj.Data.Get("Transform").(d3d.Transform3D)
-	)
-
-	transform.Pos.X = 2
 }
 
 type CameraController3D struct{}
@@ -105,30 +90,30 @@ func (c CameraController3D) Update(obj *ups.Object, deltaTime float32) {
 	)
 
 	if input.IsPressed(input.K_W) {
-		target.Pos.Z += speed * deltaTime
+		target.Position.Z += speed * deltaTime
 	}
 
 	if input.IsPressed(input.K_S) {
-		target.Pos.Z -= speed * deltaTime
+		target.Position.Z -= speed * deltaTime
 	}
 
 	if input.IsPressed(input.K_A) {
-		target.Pos.X += speed * deltaTime
+		target.Position.X += speed * deltaTime
 	}
 	if input.IsPressed(input.K_D) {
-		target.Pos.X -= speed * deltaTime
+		target.Position.X -= speed * deltaTime
 	}
 
 	if input.IsPressed(input.K_SPACE) {
-		target.Pos.Y += speed * deltaTime
+		target.Position.Y += speed * deltaTime
 	}
 	if input.IsPressed(input.K_LEFT_CONTROL) {
-		target.Pos.Y -= speed * deltaTime
+		target.Position.Y -= speed * deltaTime
 	}
 
-	transform.Pos.X = Lerp(transform.Pos.X, target.Pos.X, 0.2*deltaTime)
-	transform.Pos.Y = Lerp(transform.Pos.Y, target.Pos.Y, 0.2*deltaTime)
-	transform.Pos.Z = Lerp(transform.Pos.Z, target.Pos.Z, 0.2*deltaTime)
+	transform.Position.X = Lerp(transform.Position.X, target.Position.X, 0.2*deltaTime)
+	transform.Position.Y = Lerp(transform.Position.Y, target.Position.Y, 0.2*deltaTime)
+	transform.Position.Z = Lerp(transform.Position.Z, target.Position.Z, 0.2*deltaTime)
 
 	obj.Data.Set("Transform", transform)
 }

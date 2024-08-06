@@ -9,6 +9,7 @@ import (
 	"github.com/HaraldWik/go-game-2/scr/ups"
 	vec2 "github.com/HaraldWik/go-game-2/scr/vector/2"
 	vec3 "github.com/HaraldWik/go-game-2/scr/vector/3"
+	vec4 "github.com/HaraldWik/go-game-2/scr/vector/4"
 )
 
 var score uint32
@@ -56,7 +57,10 @@ func main() {
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
 				load.NewTexture(data.Get(data.AssetPath)+"texture.png"),
-				vec3.All(0.5), 1.0,
+				vec4.Zero(),
+				vec3.All(0.5),
+				1.0,
+				1.0,
 			),
 			"Transform": d2d.NewTransform2D(
 				vec2.New(0.0, 0.0),
@@ -74,7 +78,10 @@ func main() {
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
 				load.NewTexture(data.Get(data.AssetPath)+"texture.png"),
-				vec3.All(0.5), 1.0,
+				vec4.Zero(),
+				vec3.All(0.5),
+				1.0,
+				1.0,
 			),
 			"Transform": d2d.NewTransform2D(
 				vec2.New(0.0, 0.0),
@@ -92,7 +99,10 @@ func main() {
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
 				load.NewTexture(data.Get(data.AssetPath)+"texture.png"),
-				vec3.All(0.5), 1.0,
+				vec4.Zero(),
+				vec3.All(0.5),
+				1.0,
+				1.0,
 			),
 			"Transform": d2d.NewTransform2D(
 				vec2.New(0.0, 0.0),
@@ -112,7 +122,9 @@ func main() {
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
 				load.NewTexture(data.Get(data.AssetPath)+"gnome.png"),
+				vec4.Zero(),
 				vec3.All(0.5),
+				1.0,
 				-9.0,
 			),
 			"Transform": d2d.NewTransform2D(
@@ -128,6 +140,28 @@ func main() {
 		[]ups.System{
 			s2d.RenderRectangle2D{},
 			FlipRotate{},
+		},
+	)
+
+	WorldScene.New(
+		"Werid",
+		ups.Data{
+			"Material": d2d.NewMaterial2D(
+				load.NewEmptyTexture(),
+				vec4.Zero(),
+				vec3.All(0.01),
+				0.0,
+				10.0,
+			),
+			"Transform": d2d.NewTransform2D(
+				vec2.Zero(),
+				vec2.All(50.0),
+				0.0,
+			),
+		},
+		[]ups.System{
+			s2d.RenderRectangle2D{},
+			ColorChange{},
 		},
 	)
 
@@ -160,8 +194,10 @@ func main() {
 		"Player",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.EmptyTexture(),
+				load.NewEmptyTexture(),
+				vec4.Zero(),
 				vec3.New(1.0, 0.0, 0.0),
+				1.0,
 				2.0,
 			),
 			"Transform": d2d.NewTransform2D(
@@ -186,7 +222,9 @@ func main() {
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
 				load.NewTexture(data.Get(data.AssetPath)+"gnome.png"),
+				vec4.Zero(),
 				vec3.New(1.0, 1.0, 1.0),
+				1.0,
 				1.0,
 			),
 			"Transform": d2d.NewTransform2D(
@@ -230,8 +268,10 @@ func main() {
 		"Ground",
 		ups.Data{
 			"Material": d2d.NewMaterial2D(
-				load.EmptyTexture(),
+				load.NewEmptyTexture(),
+				vec4.Zero(),
 				vec3.New(0.0, 1.0, 0.0),
+				1.0,
 				5.0,
 			),
 			"Transform": d2d.NewTransform2D(
@@ -247,11 +287,31 @@ func main() {
 		},
 	)
 
+	WorldScene.New(
+		"Text",
+		ups.Data{
+			"Material": d2d.NewMaterial2D(
+				load.NewFont(data.Get(data.AssetPath)+"arial.ttf", 300, 100).RenderTextToTexture("Gnome jumper"),
+				vec4.Zero(),
+				vec3.New(0.0, 1.0, 0.0),
+				1.0,
+				10.0,
+			),
+			"Transform": d2d.NewTransform2D(
+				vec2.New(0, 5.0),
+				vec2.All(25.0),
+				0.0,
+			),
+		},
+		[]ups.System{
+			s2d.RenderRectangle2D{},
+			ColorChange{},
+		},
+	)
+
 	music := load.NewAudio(data.Get(data.AssetPath) + "Alla-Turca(chosic.com).mp3")
 	music.Play(-1)
 	music.SetVolume(20)
-
-	ups.SceneManager.Set(WorldScene.ID)
 
 	for !window.CloseEvent() {
 		window.BeginDraw()

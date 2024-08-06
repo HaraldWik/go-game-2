@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-var SceneManager sceneManager
+var SceneManager = sceneManager{ActiveSceneIDs: []uint32{0}}
 
 type sceneManager struct {
 	ActiveSceneIDs []uint32
@@ -112,13 +112,14 @@ type Object struct {
 	Name string
 	Data Data
 
-	Systems  []System
-	Starters []starter
-	Updaters []updater
+	Systems []System
+	Starts  []start
+	Updates []update
 
 	Tags Tags
 
-	hasStarted bool
+	hasStarted         bool
+	fixedUpdateCounter float32
 }
 
 func (s *Scene) New(name string, dt Data, syss []System, tags ...string) *Object {
@@ -162,16 +163,25 @@ func (o *Object) Clone(dt ...Data) {
 func (o *Object) update(deltaTime float32) {
 	for _, sys := range o.Systems {
 		if !o.hasStarted {
-			if starter, ok := sys.(starter); ok {
-				starter.Start(o)
+			if start, ok := sys.(start); ok {
+				start.Start(o)
 			}
 		}
 
 		if o.hasStarted {
-			if updater, ok := sys.(updater); ok {
-				updater.Update(o, deltaTime)
+			if update, ok := sys.(update); ok {
+				update.Update(o, deltaTime)
+			}
+
+			if fixedUpdate, ok := sys.(fixedUpdate); ok && o.fixedUpdateCounter == 0 {
+				fixedUpdate.FixedUpdate(o)
 			}
 		}
+	}
+
+	o.fixedUpdateCounter++
+	if o.fixedUpdateCounter >= 1 {
+		o.fixedUpdateCounter = 0
 	}
 
 	o.hasStarted = true
@@ -179,16 +189,6 @@ func (o *Object) update(deltaTime float32) {
 
 // Data
 type Data map[string]interface{}
-
-func (d *Data) Clone() Data {
-	cloned := Data{}
-
-	for key, value := range *d {
-		cloned[key] = value
-	}
-
-	return cloned
-}
 
 func (d *Data) GetByType(tar interface{}) (string, bool) {
 	for key, value := range *d {
@@ -204,6 +204,10 @@ func (d *Data) GetByName(tar string) (interface{}, bool) {
 	return value, exists
 }
 
+func (d *Data) Delete(key string) {
+	delete(*d, key)
+}
+
 func (d *Data) Set(name string, value interface{}) {
 	(*d)[name] = value
 }
@@ -216,19 +220,34 @@ func (d *Data) Get(name string) interface{} {
 	return nil
 }
 
-func (d *Data) Delete(key string) {
-	delete(*d, key)
+func (d *Data) Has(name string, types ...interface{}) bool {
+	if len(types) == 0 {
+		if _, exists := (*d)[name]; exists {
+			return true
+		}
+	} else {
+		for _, typ := range types {
+			if reflect.TypeOf(typ) == reflect.TypeOf((*d)[name]) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Systems
 type System interface{}
 
-type starter interface {
+type start interface {
 	Start(o *Object)
 }
 
-type updater interface {
+type update interface {
 	Update(o *Object, deltaTime float32)
+}
+
+type fixedUpdate interface {
+	FixedUpdate(o *Object)
 }
 
 // Tags

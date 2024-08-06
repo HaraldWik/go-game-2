@@ -16,7 +16,7 @@ type Texture struct {
 	Size  vec2.Type
 }
 
-func EmptyTexture() Texture {
+func NewEmptyTexture() Texture {
 	return Texture{
 		Image: 0,
 		Size:  vec2.Zero(),

@@ -20,8 +20,8 @@ func (c RenderCube3D) Update(obj *ups.Object, deltaTime float32) {
 
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
-	gl.Translatef(transform.Pos.X, transform.Pos.Y, transform.Pos.Z)
-	gl.Rotatef(0.0, transform.Rot.X/360, transform.Rot.Y/360, transform.Rot.Z/360)
+	gl.Translatef(transform.Position.X, transform.Position.Y, transform.Position.Z)
+	gl.Rotatef(0.0, transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z)
 
 	gl.Begin(gl.QUADS)
 
@@ -86,10 +86,10 @@ func (o RenderObj3D) Update(obj *ups.Object, deltaTime float32) {
 
 	// Apply transformation
 	gl.LoadIdentity()
-	gl.Translatef(transform.Pos.X, transform.Pos.Y, transform.Pos.Z)
-	gl.Rotatef(-transform.Rot.X, 1, 0, 0)
-	gl.Rotatef(-transform.Rot.Y, 0, 1, 0)
-	gl.Rotatef(-transform.Rot.Z, 0, 0, 1)
+	gl.Translatef(transform.Position.X, transform.Position.Y, transform.Position.Z)
+	gl.Rotatef(-transform.Rotation.X, 1, 0, 0)
+	gl.Rotatef(-transform.Rotation.Y, 0, 1, 0)
+	gl.Rotatef(-transform.Rotation.Z, 0, 0, 1)
 
 	// Bind the texture
 	gl.Enable(gl.TEXTURE_2D)

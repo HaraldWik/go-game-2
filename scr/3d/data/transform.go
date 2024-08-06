@@ -5,13 +5,13 @@ import (
 )
 
 type Transform3D struct {
-	Pos, Scale, Rot vec3.Type
+	Position, Scale, Rotation vec3.Type
 }
 
 func NewTransform3D(pos, scale, rot vec3.Type) Transform3D {
 	return Transform3D{
-		Pos:   pos,
-		Scale: scale,
-		Rot:   rot,
+		Position: pos,
+		Scale:    scale,
+		Rotation: rot,
 	}
 }
